@@ -28,6 +28,12 @@ var routes = Routes{
 		"/api/users",
 		ListUsers,
 	},
+	Route{
+		"GetPayments",
+		"GET",
+		"/api/payments",
+		GetPayments,
+	},
 	// Route{
 	// 	"GetAuthToken",
 	// 	"POST",
