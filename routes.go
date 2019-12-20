@@ -19,7 +19,7 @@ var routes = Routes{
 	Route{
 		"Status",
 		"GET",
-		"/",
+		"/api/status",
 		ShowStatus,
 	},
 	Route{
@@ -33,6 +33,12 @@ var routes = Routes{
 		"GET",
 		"/api/payments",
 		GetPayments,
+	},
+	Route{
+		"GetPaymentsByUser",
+		"GET",
+		"/api/payments/user/{id}",
+		GetPaymentsByUser,
 	},
 	// Route{
 	// 	"GetAuthToken",

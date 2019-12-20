@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/gorilla/mux"
 )
 
 // UsersResponse JSON API Spec Wrapper
@@ -86,7 +87,7 @@ func GetPayments(w http.ResponseWriter, r *http.Request) {
 		AND firstname IS NOT NULL
 		OR transactions_category.type = "paymentSepa" AND firstname IS NOT NULL
 		OR transactions.status > 1 AND firstname IS NOT NULL
-		ORDER BY transactions.created_at asc
+		ORDER BY transactions.created_at desc
 	  `)
 	if err != nil {
 		printError(w, err.Error())
@@ -115,4 +116,49 @@ func GetPayments(w http.ResponseWriter, r *http.Request) {
 
 	printJSON(w, &TransactionResponse{Transactions: transactions})
 
+}
+
+// GetPaymentsByUser delivers payments per user
+func GetPaymentsByUser(w http.ResponseWriter, r *http.Request) {
+	id := mux.Vars(r)["id"]
+	db, err := sql.Open("mysql", "root:root@tcp(127.0.0.1:8889)/foodkoop_biokiste")
+	if err != nil {
+		printError(w, err.Error())
+	}
+	defer db.Close()
+
+	results, err := db.Query(`
+		SELECT transactions.id, amount, transactions.created_at, firstname, lastname, transactions.status, transactions.reason, category_id, transactions_category.type
+		FROM transactions
+		LEFT JOIN transactions_category ON transactions.category_id = transactions_category.id
+		LEFT JOIN users ON transactions.user_id = users.id
+		WHERE users.id = ?
+		ORDER BY transactions.created_at desc
+	  `, id)
+	if err != nil {
+		printError(w, err.Error())
+	}
+
+	defer results.Close()
+	var transactions []Transaction
+	for results.Next() {
+		var transaction Transaction
+
+		err = results.Scan(
+			&transaction.ID,
+			&transaction.Amount,
+			&transaction.CreatedAt,
+			&transaction.FirstName,
+			&transaction.LastName,
+			&transaction.Status,
+			&transaction.Reason,
+			&transaction.CategoryID,
+			&transaction.Type)
+		if err != nil {
+			printError(w, err.Error())
+		}
+		transactions = append(transactions, transaction)
+	}
+
+	printJSON(w, &TransactionResponse{Transactions: transactions})
 }
