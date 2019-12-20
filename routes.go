@@ -29,16 +29,16 @@ var routes = Routes{
 		ListUsers,
 	},
 	Route{
-		"GetPayments",
+		"GetTransactions",
 		"GET",
-		"/api/payments",
-		GetPayments,
+		"/api/transactions",
+		GetTransactions,
 	},
 	Route{
-		"GetPaymentsByUser",
+		"GetTransactionsByUser",
 		"GET",
-		"/api/payments/user/{id}",
-		GetPaymentsByUser,
+		"/api/transactions/user/{id}",
+		GetTransactionsByUser,
 	},
 	// Route{
 	// 	"GetAuthToken",

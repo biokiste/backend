@@ -24,6 +24,20 @@ type TransactionResponse struct {
 	Transactions []Transaction `json:"data"`
 }
 
+// UserTransactionResponse JSON API Spec Wrapper
+type UserTransactionResponse struct {
+	UserTransaction `json:"data"`
+}
+
+// UserTransaction holds last transaction plus actual balance
+type UserTransaction struct {
+	Balance      `json:"balance"`
+	Transactions []Transaction `json:"transactions"`
+}
+
+// Balance holds actual user balance
+type Balance float32
+
 // Transaction holds properties
 type Transaction struct {
 	ID         int     `json:"id"`
@@ -70,8 +84,8 @@ func ListUsers(w http.ResponseWriter, r *http.Request) {
 	printJSON(w, &UsersResponse{Users: users})
 }
 
-// GetPayments delivers all payments
-func GetPayments(w http.ResponseWriter, r *http.Request) {
+// GetTransactions delivers all payments
+func GetTransactions(w http.ResponseWriter, r *http.Request) {
 	db, err := sql.Open("mysql", "root:root@tcp(127.0.0.1:8889)/foodkoop_biokiste")
 	if err != nil {
 		printError(w, err.Error())
@@ -118,8 +132,8 @@ func GetPayments(w http.ResponseWriter, r *http.Request) {
 
 }
 
-// GetPaymentsByUser delivers payments per user
-func GetPaymentsByUser(w http.ResponseWriter, r *http.Request) {
+// GetTransactionsByUser delivers payments per user
+func GetTransactionsByUser(w http.ResponseWriter, r *http.Request) {
 	id := mux.Vars(r)["id"]
 	db, err := sql.Open("mysql", "root:root@tcp(127.0.0.1:8889)/foodkoop_biokiste")
 	if err != nil {
@@ -160,5 +174,17 @@ func GetPaymentsByUser(w http.ResponseWriter, r *http.Request) {
 		transactions = append(transactions, transaction)
 	}
 
-	printJSON(w, &TransactionResponse{Transactions: transactions})
+	var userBalance Balance
+	if err := db.QueryRow(
+		`SELECT SUM(amount)
+		 FROM transactions
+		 WHERE user_id = ?`, id).Scan(&userBalance); err != nil {
+		printError(w, err)
+	}
+
+	printJSON(w, &UserTransactionResponse{
+		UserTransaction: UserTransaction{
+			Transactions: transactions,
+			Balance:      userBalance},
+	})
 }
