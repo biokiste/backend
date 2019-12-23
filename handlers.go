@@ -2,6 +2,8 @@ package main
 
 import (
 	"database/sql"
+	"encoding/json"
+	"fmt"
 	"net/http"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -29,6 +31,11 @@ type UserTransactionResponse struct {
 	UserTransaction `json:"data"`
 }
 
+// DoorCodeResponse JSON API Spec Wrapper
+type DoorCodeResponse struct {
+	DoorCode `json:"data"`
+}
+
 // UserTransaction holds last transaction plus actual balance
 type UserTransaction struct {
 	Balance      `json:"balance"`
@@ -37,6 +44,13 @@ type UserTransaction struct {
 
 // Balance holds actual user balance
 type Balance float32
+
+// DoorCode holds actual door codes
+type DoorCode struct {
+	Value     string `json:"doorcode"`
+	UpdatedAt string `json:"updated_at"`
+	UpdatedBy int    `json:"updated_by"`
+}
 
 // Transaction holds properties
 type Transaction struct {
@@ -54,6 +68,53 @@ type Transaction struct {
 // ShowStatus delivers actual status
 func ShowStatus(w http.ResponseWriter, r *http.Request) {
 	printJSON(w, "ok")
+}
+
+// GetDoorCode delivers actual door codes
+func GetDoorCode(w http.ResponseWriter, r *http.Request) {
+	db, err := sql.Open("mysql", "root:root@tcp(127.0.0.1:8889)/foodkoop_biokiste")
+	if err != nil {
+		printError(w, err.Error())
+	}
+	defer db.Close()
+
+	var doorCode DoorCode
+	if err := db.QueryRow(
+		`SELECT value 
+		 FROM settings
+		 WHERE id = ?`, 1).Scan(&doorCode.Value); err != nil {
+		printError(w, err)
+	}
+
+	printJSON(w, &DoorCodeResponse{DoorCode: doorCode})
+}
+
+// UpdateDoorCode sets doorcode
+func UpdateDoorCode(w http.ResponseWriter, r *http.Request) {
+	var updatedDoorCode DoorCode
+	err := json.NewDecoder(r.Body).Decode(&updatedDoorCode)
+	if err != nil {
+		printError(w, err.Error())
+	}
+
+	db, err := sql.Open("mysql", "root:root@tcp(127.0.0.1:8889)/foodkoop_biokiste")
+	if err != nil {
+		printError(w, err.Error())
+	}
+	defer db.Close()
+
+	_, err = db.Exec(
+		`UPDATE settings
+	   SET value = ?, updated_at = ?, updated_by = ? 		 
+		 WHERE id = 1`, updatedDoorCode.Value, updatedDoorCode.UpdatedAt, updatedDoorCode.UpdatedBy)
+
+	if err != nil {
+		fmt.Println(err.Error())
+		printError(w, err)
+	} else {
+		printSuccess(w)
+	}
+
 }
 
 // ListUsers delivers user data

@@ -23,6 +23,18 @@ var routes = Routes{
 		ShowStatus,
 	},
 	Route{
+		"GetDoorCode",
+		"GET",
+		"/api/settings/doorcode",
+		GetDoorCode,
+	},
+	Route{
+		"UpdateDoorCode",
+		"PATCH",
+		"/api/settings/doorcode",
+		UpdateDoorCode,
+	},
+	Route{
 		"ListUsers",
 		"GET",
 		"/api/users",

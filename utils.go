@@ -13,7 +13,7 @@ type ErrorMessage struct {
 
 func printError(w http.ResponseWriter, err interface{}) {
 	w.Header().Set("Content-Type", "application/vnd.api+json; charset=UTF-8")
-	w.WriteHeader(http.StatusUnauthorized)
+	w.WriteHeader(http.StatusInternalServerError)
 	json.NewEncoder(w).Encode(err)
 }
 
