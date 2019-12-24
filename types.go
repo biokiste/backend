@@ -55,6 +55,11 @@ type Transaction struct {
 	Type       string  `json:"type"`
 }
 
+// TransactionCategoryResponse JSON API Spec Wrapper
+type TransactionCategoryResponse struct {
+	TransactionCategories []TransactionCategory `json:"data"`
+}
+
 // TransactionCategory implements categories of a transaction
 type TransactionCategory struct {
 	ID          int    `json:"id"`

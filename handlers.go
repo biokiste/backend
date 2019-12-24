@@ -172,7 +172,28 @@ func (h Handlers) GetTransactionsByUser(w http.ResponseWriter, r *http.Request) 
 	})
 }
 
-// GetTransactionType delivers transaction categories
-// func GetTransactionType(w http.ResponseWriter, r *http.Request) {
+// GetTransactionTypes delivers transaction categories
+func (h Handlers) GetTransactionTypes(w http.ResponseWriter, r *http.Request) {
+	results, err := h.DB.Query(`
+		SELECT id, type, description
+		FROM transactions_category
+	`)
+	if err != nil {
+		printError(w, err.Error())
+	}
+	defer results.Close()
 
-// }
+	var transactionCategories []TransactionCategory
+	for results.Next() {
+		var transactionCategory TransactionCategory
+		err = results.Scan(
+			&transactionCategory.ID,
+			&transactionCategory.Type,
+			&transactionCategory.Description)
+		if err != nil {
+			printError(w, err.Error())
+		}
+		transactionCategories = append(transactionCategories, transactionCategory)
+	}
+	printJSON(w, &TransactionCategoryResponse{TransactionCategories: transactionCategories})
+}
