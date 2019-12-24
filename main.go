@@ -5,12 +5,30 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
+
+	"github.com/spf13/viper"
 )
+
+func init() {
+
+	configRoot, _ := os.Getwd()
+
+	// setup config file
+	viper.SetConfigName("config")   // name of config file (without extension)
+	viper.AddConfigPath(configRoot) // path to look for the config file in
+	err := viper.ReadInConfig()
+	if err != nil {
+		fmt.Println("Die Konfigurationsdatei config.toml konnte nicht gefunden werden!")
+		log.Fatal(err)
+	}
+
+}
 
 func main() {
 
 	// create db instance
-	db, err := sql.Open("mysql", "root:root@tcp(127.0.0.1:8889)/foodkoop_biokiste")
+	db, err := sql.Open("mysql", viper.GetString("connection"))
 	if err != nil {
 		log.Fatal(err)
 	}
