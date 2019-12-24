@@ -15,47 +15,44 @@ type Route struct {
 // Routes holds routes
 type Routes []Route
 
-var routes = Routes{
-	Route{
-		"Status",
-		"GET",
-		"/api/status",
-		ShowStatus,
-	},
-	Route{
-		"GetDoorCode",
-		"GET",
-		"/api/settings/doorcode",
-		GetDoorCode,
-	},
-	Route{
-		"UpdateDoorCode",
-		"PATCH",
-		"/api/settings/doorcode",
-		UpdateDoorCode,
-	},
-	Route{
-		"ListUsers",
-		"GET",
-		"/api/users",
-		ListUsers,
-	},
-	Route{
-		"GetTransactions",
-		"GET",
-		"/api/transactions",
-		GetTransactions,
-	},
-	Route{
-		"GetTransactionsByUser",
-		"GET",
-		"/api/transactions/user/{id}",
-		GetTransactionsByUser,
-	},
-	// Route{
-	// 	"GetAuthToken",
-	// 	"POST",
-	// 	"/api/token",
-	// 	GetAuthToken,
-	// },
+// GetRoutes defines routes
+func GetRoutes(h *Handlers) Routes {
+	return Routes{
+		Route{
+			"Status",
+			"GET",
+			"/api/status",
+			h.ShowStatus,
+		},
+		Route{
+			"GetDoorCode",
+			"GET",
+			"/api/settings/doorcode",
+			h.GetDoorCode,
+		},
+		Route{
+			"UpdateDoorCode",
+			"PATCH",
+			"/api/settings/doorcode",
+			h.UpdateDoorCode,
+		},
+		Route{
+			"ListUsers",
+			"GET",
+			"/api/users",
+			h.ListUsers,
+		},
+		Route{
+			"GetTransactions",
+			"GET",
+			"/api/transactions",
+			h.GetTransactions,
+		},
+		Route{
+			"GetTransactionsByUser",
+			"GET",
+			"/api/transactions/user/{id}",
+			h.GetTransactionsByUser,
+		},
+	}
 }

@@ -10,76 +10,20 @@ import (
 	"github.com/gorilla/mux"
 )
 
-// UsersResponse JSON API Spec Wrapper
-type UsersResponse struct {
-	Users []User `json:"data"`
-}
-
-// User holds properties
-type User struct {
-	ID       int    `json:"id"`
-	Username string `json:"username"`
-}
-
-// TransactionResponse JSON API Spec Wrapper
-type TransactionResponse struct {
-	Transactions []Transaction `json:"data"`
-}
-
-// UserTransactionResponse JSON API Spec Wrapper
-type UserTransactionResponse struct {
-	UserTransaction `json:"data"`
-}
-
-// DoorCodeResponse JSON API Spec Wrapper
-type DoorCodeResponse struct {
-	DoorCode `json:"data"`
-}
-
-// UserTransaction holds last transaction plus actual balance
-type UserTransaction struct {
-	Balance      `json:"balance"`
-	Transactions []Transaction `json:"transactions"`
-}
-
-// Balance holds actual user balance
-type Balance float32
-
-// DoorCode holds actual door codes
-type DoorCode struct {
-	Value     string `json:"doorcode"`
-	UpdatedAt string `json:"updated_at"`
-	UpdatedBy int    `json:"updated_by"`
-}
-
-// Transaction holds properties
-type Transaction struct {
-	ID         int     `json:"id"`
-	Amount     float32 `json:"amount"`
-	CreatedAt  string  `json:"created_at"`
-	FirstName  string  `json:"firstname"`
-	LastName   string  `json:"lastname"`
-	Status     int     `json:"status"`
-	Reason     string  `json:"reason"`
-	CategoryID int     `json:"category_id"`
-	Type       string  `json:"type"`
+// Handlers wrapps DB instance
+type Handlers struct {
+	DB *sql.DB
 }
 
 // ShowStatus delivers actual status
-func ShowStatus(w http.ResponseWriter, r *http.Request) {
+func (h Handlers) ShowStatus(w http.ResponseWriter, r *http.Request) {
 	printJSON(w, "ok")
 }
 
 // GetDoorCode delivers actual door codes
-func GetDoorCode(w http.ResponseWriter, r *http.Request) {
-	db, err := sql.Open("mysql", "root:root@tcp(127.0.0.1:8889)/foodkoop_biokiste")
-	if err != nil {
-		printError(w, err.Error())
-	}
-	defer db.Close()
-
+func (h Handlers) GetDoorCode(w http.ResponseWriter, r *http.Request) {
 	var doorCode DoorCode
-	if err := db.QueryRow(
+	if err := h.DB.QueryRow(
 		`SELECT value 
 		 FROM settings
 		 WHERE id = ?`, 1).Scan(&doorCode.Value); err != nil {
@@ -90,20 +34,14 @@ func GetDoorCode(w http.ResponseWriter, r *http.Request) {
 }
 
 // UpdateDoorCode sets doorcode
-func UpdateDoorCode(w http.ResponseWriter, r *http.Request) {
+func (h Handlers) UpdateDoorCode(w http.ResponseWriter, r *http.Request) {
 	var updatedDoorCode DoorCode
 	err := json.NewDecoder(r.Body).Decode(&updatedDoorCode)
 	if err != nil {
 		printError(w, err.Error())
 	}
 
-	db, err := sql.Open("mysql", "root:root@tcp(127.0.0.1:8889)/foodkoop_biokiste")
-	if err != nil {
-		printError(w, err.Error())
-	}
-	defer db.Close()
-
-	_, err = db.Exec(
+	_, err = h.DB.Exec(
 		`UPDATE settings
 	   SET value = ?, updated_at = ?, updated_by = ? 		 
 		 WHERE id = 1`, updatedDoorCode.Value, updatedDoorCode.UpdatedAt, updatedDoorCode.UpdatedBy)
@@ -118,14 +56,8 @@ func UpdateDoorCode(w http.ResponseWriter, r *http.Request) {
 }
 
 // ListUsers delivers user data
-func ListUsers(w http.ResponseWriter, r *http.Request) {
-	db, err := sql.Open("mysql", "root:root@tcp(127.0.0.1:8889)/foodkoop_biokiste")
-	if err != nil {
-		printError(w, err.Error())
-	}
-	defer db.Close()
-
-	results, err := db.Query("SELECT id, username FROM users")
+func (h Handlers) ListUsers(w http.ResponseWriter, r *http.Request) {
+	results, err := h.DB.Query("SELECT id, username FROM users")
 	if err != nil {
 		printError(w, err.Error())
 	}
@@ -146,14 +78,9 @@ func ListUsers(w http.ResponseWriter, r *http.Request) {
 }
 
 // GetTransactions delivers all payments
-func GetTransactions(w http.ResponseWriter, r *http.Request) {
-	db, err := sql.Open("mysql", "root:root@tcp(127.0.0.1:8889)/foodkoop_biokiste")
-	if err != nil {
-		printError(w, err.Error())
-	}
-	defer db.Close()
+func (h Handlers) GetTransactions(w http.ResponseWriter, r *http.Request) {
 
-	results, err := db.Query(`
+	results, err := h.DB.Query(`
 		SELECT transactions.id, amount, transactions.created_at, firstname, lastname, transactions.status, transactions.reason, category_id, transactions_category.type
 		FROM transactions
 		LEFT JOIN transactions_category ON transactions.category_id = transactions_category.id
@@ -194,15 +121,10 @@ func GetTransactions(w http.ResponseWriter, r *http.Request) {
 }
 
 // GetTransactionsByUser delivers payments per user
-func GetTransactionsByUser(w http.ResponseWriter, r *http.Request) {
+func (h Handlers) GetTransactionsByUser(w http.ResponseWriter, r *http.Request) {
 	id := mux.Vars(r)["id"]
-	db, err := sql.Open("mysql", "root:root@tcp(127.0.0.1:8889)/foodkoop_biokiste")
-	if err != nil {
-		printError(w, err.Error())
-	}
-	defer db.Close()
 
-	results, err := db.Query(`
+	results, err := h.DB.Query(`
 		SELECT transactions.id, amount, transactions.created_at, firstname, lastname, transactions.status, transactions.reason, category_id, transactions_category.type
 		FROM transactions
 		LEFT JOIN transactions_category ON transactions.category_id = transactions_category.id
@@ -236,7 +158,7 @@ func GetTransactionsByUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var userBalance Balance
-	if err := db.QueryRow(
+	if err := h.DB.QueryRow(
 		`SELECT SUM(amount)
 		 FROM transactions
 		 WHERE user_id = ?`, id).Scan(&userBalance); err != nil {
@@ -249,3 +171,8 @@ func GetTransactionsByUser(w http.ResponseWriter, r *http.Request) {
 			Balance:      userBalance},
 	})
 }
+
+// GetTransactionType delivers transaction categories
+// func GetTransactionType(w http.ResponseWriter, r *http.Request) {
+
+// }

@@ -6,14 +6,21 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func NewRouter() *mux.Router {
+// RouterConfig implements handlers
+type RouterConfig struct {
+	Handlers *Handlers
+}
 
+// APIRouter registers routes
+func APIRouter(config *RouterConfig) *mux.Router {
 	router := mux.NewRouter()
-	for _, route := range routes {
+
+	// load routes from routes.go
+	for _, route := range GetRoutes(config.Handlers) {
 		var handler http.Handler
 
-		// handler = Logger(Auth(route.HandlerFunc), route.Name)
-		handler = Logger(route.HandlerFunc, route.Name)
+		handler = route.HandlerFunc
+		handler = Logger(handler, route.Name)
 
 		router.
 			Methods(route.Method).
