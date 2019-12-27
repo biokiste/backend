@@ -11,6 +11,22 @@ expects running mysql instance on `localhost:8889` (root, root) with db foodkoop
 
 ### api 
 
+Insert user transactions:
+- POST to `/api/transaction` with body:
+`{
+	"transactions": [
+	{	
+		"amount": 100.00,
+		"created_at": "2019-12-27 17:30",
+		"category_id": 1,
+		"status": 1
+	}
+	],
+	"user": {
+	"id": 176
+	}
+}`
+
 Update doorcode:
 - PATCH to `/api/settings/doorcode` with body:
 `{

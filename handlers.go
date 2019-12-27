@@ -4,7 +4,9 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
+	"strconv"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/mux"
@@ -122,7 +124,7 @@ func (h Handlers) GetTransactions(w http.ResponseWriter, r *http.Request) {
 
 // GetTransactionsByUser delivers payments per user
 func (h Handlers) GetTransactionsByUser(w http.ResponseWriter, r *http.Request) {
-	id := mux.Vars(r)["id"]
+	id, _ := strconv.Atoi(mux.Vars(r)["id"])
 
 	results, err := h.DB.Query(`
 		SELECT transactions.id, amount, transactions.created_at, firstname, lastname, transactions.status, transactions.reason, category_id, transactions_category.type
@@ -157,11 +159,8 @@ func (h Handlers) GetTransactionsByUser(w http.ResponseWriter, r *http.Request) 
 		transactions = append(transactions, transaction)
 	}
 
-	var userBalance Balance
-	if err := h.DB.QueryRow(
-		`SELECT SUM(amount)
-		 FROM transactions
-		 WHERE user_id = ?`, id).Scan(&userBalance); err != nil {
+	userBalance, err := h.GetBalance(id)
+	if err != nil {
 		printError(w, err)
 	}
 
@@ -196,4 +195,46 @@ func (h Handlers) GetTransactionTypes(w http.ResponseWriter, r *http.Request) {
 		transactionCategories = append(transactionCategories, transactionCategory)
 	}
 	printJSON(w, &TransactionCategoryResponse{TransactionCategories: transactionCategories})
+}
+
+// AddTransaction updates user balance with transactions
+func (h Handlers) AddTransaction(w http.ResponseWriter, r *http.Request) {
+	var transactionRequest TransactionRequest
+	err := json.NewDecoder(r.Body).Decode(&transactionRequest)
+	if err != nil {
+		printError(w, err.Error())
+	}
+
+	for _, t := range transactionRequest.Transactions {
+		stmt, err := h.DB.Prepare(`
+			INSERT INTO transactions(
+				user_id,
+				category_id,
+				amount,
+				status,
+				created_at,
+				reason) VALUES(?,?,?,?,?,?)
+		`)
+		if err != nil {
+			// TODO push error to error[] and send printError
+			log.Fatal(err)
+		}
+		_, err = stmt.Exec(
+			transactionRequest.User.ID,
+			t.CategoryID,
+			t.Amount,
+			t.Status,
+			t.CreatedAt,
+			t.Reason,
+		)
+		if err != nil {
+			// TODO push error to error[] and send printError
+			log.Fatal(err)
+		}
+	}
+
+	balance, err := h.GetBalance(transactionRequest.User.ID)
+	printJSON(w, &UserTransactionResponse{
+		UserTransaction{Balance: balance},
+	})
 }

@@ -66,3 +66,9 @@ type TransactionCategory struct {
 	Type        string `json:"type"`
 	Description string `json:"description"`
 }
+
+// TransactionRequest implements user and requested transactions
+type TransactionRequest struct {
+	Transactions []Transaction `json:"transactions"`
+	User         `json:"user"`
+}
