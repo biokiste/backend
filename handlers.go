@@ -238,3 +238,18 @@ func (h Handlers) AddTransaction(w http.ResponseWriter, r *http.Request) {
 		UserTransaction{Balance: balance},
 	})
 }
+
+// UpdatePayment updates payment possibly as accepted or rejected
+func (h Handlers) UpdatePayment(w http.ResponseWriter, r *http.Request) {
+	var transaction TransactionRequest
+	err := json.NewDecoder(r.Body).Decode(&transaction)
+	if err != nil {
+		printError(w, err.Error())
+	}
+	err = h.UpdateTransaction(transaction)
+	if err != nil {
+		printError(w, err.Error)
+	} else {
+		printSuccess(w)
+	}
+}

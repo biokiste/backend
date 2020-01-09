@@ -43,16 +43,18 @@ type DoorCode struct {
 }
 
 // Transaction holds properties
+// swagger:model transaction
 type Transaction struct {
-	ID         int     `json:"id"`
-	Amount     float32 `json:"amount"`
-	CreatedAt  string  `json:"created_at"`
-	FirstName  string  `json:"firstname"`
-	LastName   string  `json:"lastname"`
-	Status     int     `json:"status"`
-	Reason     string  `json:"reason"`
-	CategoryID int     `json:"category_id"`
-	Type       string  `json:"type"`
+	ID          int     `json:"id"`
+	Amount      float32 `json:"amount"`
+	CreatedAt   string  `json:"created_at"`
+	FirstName   string  `json:"firstname"`
+	LastName    string  `json:"lastname"`
+	Status      int     `json:"status"`
+	Reason      string  `json:"reason"`
+	CategoryID  int     `json:"category_id"`
+	Type        string  `json:"type"`
+	ValidatedBy int     `json:"validated_by"`
 }
 
 // TransactionCategoryResponse JSON API Spec Wrapper
