@@ -72,5 +72,11 @@ func GetRoutes(h *Handlers) Routes {
 			"/api/transactions/payments",
 			h.UpdatePayment,
 		},
+		Route{
+			"GetOpenPayments",
+			"GET",
+			"/api/transactions/payments/open",
+			h.GetOpenPayments,
+		},
 	}
 }

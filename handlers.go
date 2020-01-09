@@ -253,3 +253,43 @@ func (h Handlers) UpdatePayment(w http.ResponseWriter, r *http.Request) {
 		printSuccess(w)
 	}
 }
+
+// GetOpenPayments delivers all open user transactions (payments)
+func (h Handlers) GetOpenPayments(w http.ResponseWriter, r *http.Request) {
+	results, err := h.DB.Query(`
+		SELECT transactions.id, amount, transactions.created_at, firstname, lastname, transactions.status, transactions.reason, category_id, transactions_category.type
+		FROM transactions
+		LEFT JOIN transactions_category ON transactions.category_id = transactions_category.id
+		LEFT JOIN users ON transactions.user_id = users.id
+		WHERE transactions.status = 2
+		AND firstname IS NOT NULL		
+		ORDER BY transactions.created_at desc
+	  `)
+	if err != nil {
+		printError(w, err.Error())
+	}
+
+	defer results.Close()
+	var transactions []Transaction
+	for results.Next() {
+		var transaction Transaction
+
+		err = results.Scan(
+			&transaction.ID,
+			&transaction.Amount,
+			&transaction.CreatedAt,
+			&transaction.FirstName,
+			&transaction.LastName,
+			&transaction.Status,
+			&transaction.Reason,
+			&transaction.CategoryID,
+			&transaction.Type)
+		if err != nil {
+			printError(w, err.Error())
+		}
+		transactions = append(transactions, transaction)
+	}
+
+	printJSON(w, &TransactionResponse{Transactions: transactions})
+
+}
