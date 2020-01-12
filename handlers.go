@@ -59,24 +59,13 @@ func (h Handlers) UpdateDoorCode(w http.ResponseWriter, r *http.Request) {
 
 // ListUsers delivers user data
 func (h Handlers) ListUsers(w http.ResponseWriter, r *http.Request) {
-	results, err := h.DB.Query("SELECT id, username FROM users")
+	users, err := h.GetAllUser()
+	fmt.Println(err)
 	if err != nil {
-		printError(w, err.Error())
+		printError(w, err.Error)
+	} else {
+		printJSON(w, &UsersResponse{Users: users})
 	}
-
-	defer results.Close()
-
-	var users []User
-	for results.Next() {
-		var user User
-		err = results.Scan(&user.ID, &user.Username)
-		if err != nil {
-			printError(w, err.Error())
-		}
-		users = append(users, user)
-	}
-
-	printJSON(w, &UsersResponse{Users: users})
 }
 
 // GetTransactions delivers all payments
@@ -87,10 +76,8 @@ func (h Handlers) GetTransactions(w http.ResponseWriter, r *http.Request) {
 		FROM transactions
 		LEFT JOIN transactions_category ON transactions.category_id = transactions_category.id
 		LEFT JOIN users ON transactions.user_id = users.id
-		WHERE transactions_category.type = "payment"
-		AND firstname IS NOT NULL
-		OR transactions_category.type = "paymentSepa" AND firstname IS NOT NULL
-		OR transactions.status > 1 AND firstname IS NOT NULL
+		WHERE NOT transactions_category.type = "correction"
+		AND firstname IS NOT NULL AND transactions.status = 1 		
 		ORDER BY transactions.created_at desc
 	  `)
 	if err != nil {

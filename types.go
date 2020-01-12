@@ -7,8 +7,35 @@ type UsersResponse struct {
 
 // User holds properties
 type User struct {
-	ID       int    `json:"id"`
-	Username string `json:"username"`
+	ID            int     `json:"id"`
+	Username      string  `json:"username"`
+	Email         string  `json:"email"`
+	Lastname      string  `json:"lastname"`
+	Firstname     string  `json:"firstname"`
+	Mobile        string  `json:"mobile"`
+	NeedSMS       int     `json:"need_sms"`
+	Phone         string  `json:"phone,omitempty"`
+	Street        string  `json:"street"`
+	ZIP           string  `json:"zip"`
+	City          string  `json:"city"`
+	DateOfBirth   string  `json:"date_of_birth"`
+	DateOfEntry   string  `json:"date_of_entry"`
+	DateOfExit    string  `json:"date_of_exit"`
+	State         int     `json:"state"`
+	Credit        float32 `json:"credit"`
+	CreditDate    string  `json:"credit_date"`
+	CreditComment string  `json:"credit_comment,omitempty"`
+	IBAN          string  `json:"iban,omitempty"`
+	BIC           string  `json:"bic,omitempty"`
+	SEPA          string  `json:"sepa,omitempty"`
+	RememberToken string  `json:"remember_token,omitempty"`
+	Additionals   string  `json:"additionals,omitempty"`
+	Comment       string  `json:"comment,omitempty"`
+	GroupComment  string  `json:"group_comment,omitempty"`
+	CreatedAt     string  `json:"created_at"`
+	UpdatedAt     string  `json:"updated_at"`
+	LastLogin     string  `json:"last_login"`
+	Password      string  `json:"password,omitempty"`
 }
 
 // TransactionResponse JSON API Spec Wrapper
