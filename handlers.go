@@ -60,11 +60,26 @@ func (h Handlers) UpdateDoorCode(w http.ResponseWriter, r *http.Request) {
 // ListUsers delivers user data
 func (h Handlers) ListUsers(w http.ResponseWriter, r *http.Request) {
 	users, err := h.GetAllUser()
-	fmt.Println(err)
 	if err != nil {
 		printError(w, err.Error)
 	} else {
 		printJSON(w, &UsersResponse{Users: users})
+	}
+}
+
+// UpdateUser updates user
+func (h Handlers) UpdateUser(w http.ResponseWriter, r *http.Request) {
+	var user User
+	err := json.NewDecoder(r.Body).Decode(&user)
+	if err != nil {
+		printError(w, err.Error())
+	}
+
+	err = h.UpdateUserData(user)
+	if err != nil {
+		printError(w, err.Error)
+	} else {
+		printSuccess(w)
 	}
 }
 

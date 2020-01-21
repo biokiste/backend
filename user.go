@@ -61,6 +61,20 @@ func (h Handlers) GetAllUser() ([]User, error) {
 	return users, nil
 }
 
+// UpdateUserData updates user
+func (h Handlers) UpdateUserData(user User) error {
+	_, err := h.DB.Exec(
+		`UPDATE users
+	   SET username = ?, email = ?, lastname = ? 		 
+		 WHERE id = ?`,
+		user.Username,
+		user.Email,
+		user.Lastname,
+		user.ID,
+	)
+	return err
+}
+
 // GetBalance returns actual user balance
 func (h Handlers) GetBalance(id int) (Balance, error) {
 	var userBalance Balance
