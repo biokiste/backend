@@ -65,11 +65,19 @@ func (h Handlers) GetAllUser() ([]User, error) {
 func (h Handlers) UpdateUserData(user User) error {
 	_, err := h.DB.Exec(
 		`UPDATE users
-	   SET username = ?, email = ?, lastname = ? 		 
+		 SET username = ?, email = ?, lastname = ?, firstname = ?, mobile = ?, street = ?, zip = ?, city = ?,
+		 		 date_of_birth = ?, date_of_entry = ?
 		 WHERE id = ?`,
 		user.Username,
 		user.Email,
 		user.Lastname,
+		user.Firstname,
+		user.Mobile,
+		user.Street,
+		user.ZIP,
+		user.City,
+		user.DateOfBirth,
+		user.DateOfEntry,
 		user.ID,
 	)
 	return err

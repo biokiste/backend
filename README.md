@@ -35,4 +35,20 @@ Update doorcode:
 	"updated_by": 176
 }`
 
+Update user:
+- PATCH to `/api/user` with body:
+`{	
+	"id": 1,
+	"username": "ro.ri",
+	"email": "roland.rindfleisch@web.de",
+	"lastname": "Rindfleisch",
+	"firstname": "Roland",
+	"mobile": "2837432847",
+	"street": "Industriestraße 101",
+	"zip": "04229",
+	"city": "Leipzig",
+	"date_of_birth": "1901-08-19",
+	"date_of_entry": "2020-03-03"
+}`
+
 for other routes see @ `routes.go`
