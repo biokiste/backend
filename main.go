@@ -42,5 +42,5 @@ func main() {
 	})
 
 	fmt.Println("biokiste backend listen on localhost:1316")
-	log.Fatal(http.ListenAndServe("localhost:1316", router))
+	log.Fatal(http.ListenAndServe(":1316", router))
 }
