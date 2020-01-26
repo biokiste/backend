@@ -30,3 +30,9 @@ func printJSON(w http.ResponseWriter, obj interface{}) {
 	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, DELETE")
 	json.NewEncoder(w).Encode(obj)
 }
+
+func notAuthorized(w http.ResponseWriter, obj interface{}) {
+	w.Header().Set("Content-Type", "application/vnd.api+json; charset=UTF-8")
+	w.WriteHeader(http.StatusUnauthorized)
+	json.NewEncoder(w).Encode(obj)
+}
