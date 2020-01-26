@@ -43,6 +43,12 @@ func GetRoutes(h *Handlers) Routes {
 			h.ListUsers,
 		},
 		Route{
+			"LastActiveUsers",
+			"GET",
+			"/api/users/lastactive",
+			h.LastActiveUsers,
+		},
+		Route{
 			"UpdateUser",
 			"PATCH",
 			"/api/user",

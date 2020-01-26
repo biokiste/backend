@@ -1,5 +1,7 @@
 package main
 
+import "time"
+
 // GetAllUser returns all users
 func (h Handlers) GetAllUser() ([]User, error) {
 	var users []User
@@ -51,6 +53,43 @@ func (h Handlers) GetAllUser() ([]User, error) {
 			&user.GroupComment,
 			&user.CreatedAt,
 			&user.UpdatedAt,
+			&user.LastLogin,
+		)
+		if err != nil {
+			return users, err
+		}
+		users = append(users, user)
+	}
+	return users, nil
+}
+
+// GetLastActiveUsers returns ten last active users
+func (h Handlers) GetLastActiveUsers() ([]User, error) {
+	var users []User
+	today := time.Now().Format("2006-01-02")
+
+	results, err := h.DB.Query(`
+		SELECT
+			id, username, email, lastname, firstname, mobile, 
+			COALESCE(last_login, '') as last_login
+		FROM users
+		WHERE last_login > ?
+		ORDER BY last_login DESC
+		LIMIT 10`, today)
+	if err != nil {
+		return users, err
+	}
+	defer results.Close()
+
+	for results.Next() {
+		var user User
+		err = results.Scan(
+			&user.ID,
+			&user.Username,
+			&user.Email,
+			&user.Lastname,
+			&user.Firstname,
+			&user.Mobile,
 			&user.LastLogin,
 		)
 		if err != nil {

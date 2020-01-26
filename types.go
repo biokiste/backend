@@ -13,17 +13,17 @@ type User struct {
 	Lastname      string  `json:"lastname"`
 	Firstname     string  `json:"firstname"`
 	Mobile        string  `json:"mobile"`
-	NeedSMS       int     `json:"need_sms"`
+	NeedSMS       int     `json:"need_sms,omitempty"`
 	Phone         string  `json:"phone,omitempty"`
-	Street        string  `json:"street"`
-	ZIP           string  `json:"zip"`
-	City          string  `json:"city"`
-	DateOfBirth   string  `json:"date_of_birth"`
-	DateOfEntry   string  `json:"date_of_entry"`
-	DateOfExit    string  `json:"date_of_exit"`
-	State         int     `json:"state"`
-	Credit        float32 `json:"credit"`
-	CreditDate    string  `json:"credit_date"`
+	Street        string  `json:"street,omitempty"`
+	ZIP           string  `json:"zip,omitempty"`
+	City          string  `json:"city,omitempty"`
+	DateOfBirth   string  `json:"date_of_birth,omitempty"`
+	DateOfEntry   string  `json:"date_of_entry,omitempty"`
+	DateOfExit    string  `json:"date_of_exit,omitempty"`
+	State         int     `json:"state,omitempty"`
+	Credit        float32 `json:"credit,omitempty"`
+	CreditDate    string  `json:"credit_date,omitempty"`
 	CreditComment string  `json:"credit_comment,omitempty"`
 	IBAN          string  `json:"iban,omitempty"`
 	BIC           string  `json:"bic,omitempty"`
@@ -32,8 +32,8 @@ type User struct {
 	Additionals   string  `json:"additionals,omitempty"`
 	Comment       string  `json:"comment,omitempty"`
 	GroupComment  string  `json:"group_comment,omitempty"`
-	CreatedAt     string  `json:"created_at"`
-	UpdatedAt     string  `json:"updated_at"`
+	CreatedAt     string  `json:"created_at,omitempty"`
+	UpdatedAt     string  `json:"updated_at,omitempty"`
 	LastLogin     string  `json:"last_login"`
 	Password      string  `json:"password,omitempty"`
 }

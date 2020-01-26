@@ -67,6 +67,16 @@ func (h Handlers) ListUsers(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// LastActiveUsers delivers last ten active users
+func (h Handlers) LastActiveUsers(w http.ResponseWriter, r *http.Request) {
+	users, err := h.GetLastActiveUsers()
+	if err != nil {
+		printError(w, err.Error)
+	} else {
+		printJSON(w, &UsersResponse{Users: users})
+	}
+}
+
 // UpdateUser updates user
 func (h Handlers) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	var user User
