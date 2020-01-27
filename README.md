@@ -3,7 +3,7 @@
 
 ## development
 
-expects running mysql instance on `localhost:8889` (root, root) with db foodkoop_biokiste
+expects connection string of mysql instance in config.toml (app root)
 
 - compile backend with `go build`
 - run backend with `./backend`
