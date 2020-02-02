@@ -29,7 +29,8 @@ func (h Handlers) GetDoorCode(w http.ResponseWriter, r *http.Request) {
 		`SELECT value 
 		 FROM settings
 		 WHERE id = ?`, 1).Scan(&doorCode.Value); err != nil {
-		printError(w, err)
+		printDbError(w)
+		return
 	}
 
 	printJSON(w, &DoorCodeResponse{DoorCode: doorCode})
@@ -40,7 +41,8 @@ func (h Handlers) UpdateDoorCode(w http.ResponseWriter, r *http.Request) {
 	var updatedDoorCode DoorCode
 	err := json.NewDecoder(r.Body).Decode(&updatedDoorCode)
 	if err != nil {
-		printError(w, err.Error())
+		printDbError(w)
+		return
 	}
 
 	_, err = h.DB.Exec(
@@ -61,7 +63,7 @@ func (h Handlers) UpdateDoorCode(w http.ResponseWriter, r *http.Request) {
 func (h Handlers) ListUsers(w http.ResponseWriter, r *http.Request) {
 	users, err := h.GetAllUser()
 	if err != nil {
-		printError(w, err.Error)
+		printDbError(w)
 	} else {
 		printJSON(w, &UsersResponse{Users: users})
 	}
@@ -71,7 +73,7 @@ func (h Handlers) ListUsers(w http.ResponseWriter, r *http.Request) {
 func (h Handlers) LastActiveUsers(w http.ResponseWriter, r *http.Request) {
 	users, err := h.GetLastActiveUsers()
 	if err != nil {
-		printError(w, err.Error)
+		printDbError(w)
 	} else {
 		printJSON(w, &UsersResponse{Users: users})
 	}
@@ -82,12 +84,14 @@ func (h Handlers) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	var user User
 	err := json.NewDecoder(r.Body).Decode(&user)
 	if err != nil {
-		printError(w, err.Error())
+		printError(w, err)
+		return
 	}
 
 	err = h.UpdateUserData(user)
 	if err != nil {
 		printError(w, err.Error)
+		return
 	} else {
 		printSuccess(w)
 	}
@@ -106,7 +110,8 @@ func (h Handlers) GetTransactions(w http.ResponseWriter, r *http.Request) {
 		ORDER BY transactions.created_at desc
 	  `)
 	if err != nil {
-		printError(w, err.Error())
+		printDbError(w)
+		return
 	}
 
 	defer results.Close()
@@ -125,7 +130,7 @@ func (h Handlers) GetTransactions(w http.ResponseWriter, r *http.Request) {
 			&transaction.CategoryID,
 			&transaction.Type)
 		if err != nil {
-			printError(w, err.Error())
+			printError(w, err)
 		}
 		transactions = append(transactions, transaction)
 	}
@@ -147,7 +152,8 @@ func (h Handlers) GetTransactionsByUser(w http.ResponseWriter, r *http.Request) 
 		ORDER BY transactions.created_at desc
 	  `, id)
 	if err != nil {
-		printError(w, err.Error())
+		printDbError(w)
+		return
 	}
 
 	defer results.Close()
@@ -166,7 +172,7 @@ func (h Handlers) GetTransactionsByUser(w http.ResponseWriter, r *http.Request) 
 			&transaction.CategoryID,
 			&transaction.Type)
 		if err != nil {
-			printError(w, err.Error())
+			printError(w, err)
 		}
 		transactions = append(transactions, transaction)
 	}
@@ -190,7 +196,8 @@ func (h Handlers) GetTransactionTypes(w http.ResponseWriter, r *http.Request) {
 		FROM transactions_category
 	`)
 	if err != nil {
-		printError(w, err.Error())
+		printDbError(w)
+		return
 	}
 	defer results.Close()
 
@@ -202,7 +209,7 @@ func (h Handlers) GetTransactionTypes(w http.ResponseWriter, r *http.Request) {
 			&transactionCategory.Type,
 			&transactionCategory.Description)
 		if err != nil {
-			printError(w, err.Error())
+			printDbError(w)
 		}
 		transactionCategories = append(transactionCategories, transactionCategory)
 	}
@@ -214,7 +221,8 @@ func (h Handlers) AddTransaction(w http.ResponseWriter, r *http.Request) {
 	var transactionRequest TransactionRequest
 	err := json.NewDecoder(r.Body).Decode(&transactionRequest)
 	if err != nil {
-		printError(w, err.Error())
+		printDbError(w)
+		return
 	}
 
 	for _, t := range transactionRequest.Transactions {
@@ -256,7 +264,8 @@ func (h Handlers) UpdatePayment(w http.ResponseWriter, r *http.Request) {
 	var transaction TransactionRequest
 	err := json.NewDecoder(r.Body).Decode(&transaction)
 	if err != nil {
-		printError(w, err.Error())
+		printDbError(w)
+		return
 	}
 	err = h.UpdateTransaction(transaction)
 	if err != nil {
@@ -278,7 +287,8 @@ func (h Handlers) GetOpenPayments(w http.ResponseWriter, r *http.Request) {
 		ORDER BY transactions.created_at desc
 	  `)
 	if err != nil {
-		printError(w, err.Error())
+		printDbError(w)
+		return
 	}
 
 	defer results.Close()
@@ -297,7 +307,7 @@ func (h Handlers) GetOpenPayments(w http.ResponseWriter, r *http.Request) {
 			&transaction.CategoryID,
 			&transaction.Type)
 		if err != nil {
-			printError(w, err.Error())
+			printDbError(w)
 		}
 		transactions = append(transactions, transaction)
 	}

@@ -29,6 +29,7 @@ func main() {
 
 	// create db instance
 	db, err := sql.Open("mysql", viper.GetString("connection"))
+	err = db.Ping()
 	if err != nil {
 		log.Fatal(err)
 	}
