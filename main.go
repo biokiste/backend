@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"flag"
 	"fmt"
 	"log"
 	"net/http"
@@ -13,10 +14,13 @@ import (
 func init() {
 
 	configRoot, _ := os.Getwd()
+	var configPath = flag.String("config", configRoot, "defines path to config file")
+
+	flag.Parse()
 
 	// setup config file
-	viper.SetConfigName("config")   // name of config file (without extension)
-	viper.AddConfigPath(configRoot) // path to look for the config file in
+	viper.SetConfigName("config")    // name of config file (without extension)
+	viper.AddConfigPath(*configPath) // path to look for the config file in
 	err := viper.ReadInConfig()
 	if err != nil {
 		fmt.Println("Die Konfigurationsdatei config.toml konnte nicht gefunden werden!")
