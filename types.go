@@ -101,3 +101,15 @@ type TransactionRequest struct {
 	Transactions []Transaction `json:"transactions"`
 	User         `json:"user"`
 }
+
+// GroupType represents type of member group
+type GroupType struct {
+	ID          int    `json:"id"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+}
+
+// GroupTypesRequest lists all types of groups
+type GroupTypesRequest struct {
+	GroupTypes []GroupType `json:"group_types"`
+}
