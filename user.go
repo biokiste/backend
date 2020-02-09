@@ -7,7 +7,7 @@ func (h Handlers) GetAllUser() ([]User, error) {
 	var users []User
 	results, err := h.DB.Query(`
 		SELECT
-			id, username, email, lastname, firstname, mobile, need_sms,
+			u.id, username, email, lastname, firstname, mobile, need_sms, group_id,
 			street, zip, city, date_of_birth, date_of_entry,
 			COALESCE(date_of_exit, '') as date_of_exit,
 			state, credit, credit_date, credit_comment,
@@ -17,9 +17,13 @@ func (h Handlers) GetAllUser() ([]User, error) {
 			COALESCE(additionals, '') as additionals, 
 			COALESCE(comment, '') as comment,
 			COALESCE(group_comment, '') as group_comment,
-			created_at, updated_at,
+			u.created_at, u.updated_at,
 			COALESCE(last_login, '') as last_login
-		FROM users`)
+		FROM users u
+			INNER JOIN
+				groups_users
+			ON u.id=groups_users.user_id
+	`)
 	if err != nil {
 		return users, err
 	}
@@ -35,6 +39,7 @@ func (h Handlers) GetAllUser() ([]User, error) {
 			&user.Firstname,
 			&user.Mobile,
 			&user.NeedSMS,
+			&user.GroupID,
 			&user.Street,
 			&user.ZIP,
 			&user.City,
@@ -60,6 +65,7 @@ func (h Handlers) GetAllUser() ([]User, error) {
 		}
 		users = append(users, user)
 	}
+
 	return users, nil
 }
 

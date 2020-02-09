@@ -15,6 +15,7 @@ type User struct {
 	Mobile        string  `json:"mobile"`
 	NeedSMS       int     `json:"need_sms,omitempty"`
 	Phone         string  `json:"phone,omitempty"`
+	GroupID       string  `json:"group_id"`
 	Street        string  `json:"street,omitempty"`
 	ZIP           string  `json:"zip,omitempty"`
 	City          string  `json:"city,omitempty"`
