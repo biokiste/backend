@@ -96,5 +96,11 @@ func GetRoutes(h *Handlers) Routes {
 			"/api/group/types",
 			h.GetGroupTypes,
 		},
+		Route{
+			"GetGroups",
+			"GET",
+			"/api/groups",
+			h.GetGroups,
+		},
 	}
 }
