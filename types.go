@@ -101,3 +101,34 @@ type TransactionRequest struct {
 	Transactions []Transaction `json:"transactions"`
 	User         `json:"user"`
 }
+
+// GroupType represents type of member group
+type GroupType struct {
+	ID          int    `json:"id"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+}
+
+// GroupTypesRequest lists all types of groups
+type GroupTypesRequest struct {
+	GroupTypes []GroupType `json:"data"`
+}
+
+// GroupUserEntry implements group with user entry
+type GroupUserEntry struct {
+	GroupID    int `json:"group_id"`
+	UserID     int `json:"user_id"`
+	PositionID int `json:"position_id"`
+}
+
+// Group implements list of user ids and group leader ids
+type Group struct {
+	ID        int   `json:"id"`
+	UserIDs   []int `json:"user_ids"`
+	LeaderIDs []int `json:"leader_ids"`
+}
+
+// GroupRequest implements list of groups
+type GroupRequest struct {
+	Groups []Group `json:"data"`
+}

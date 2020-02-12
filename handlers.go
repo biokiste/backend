@@ -318,3 +318,40 @@ func (h Handlers) GetOpenPayments(w http.ResponseWriter, r *http.Request) {
 	printJSON(w, &TransactionResponse{Transactions: transactions})
 
 }
+
+// GetGroupTypes returns all type of groups
+func (h Handlers) GetGroupTypes(w http.ResponseWriter, r *http.Request) {
+	results, err := h.DB.Query(`
+		SELECT id, name, description
+		FROM groups
+	`)
+	if err != nil {
+		printDbError(w)
+		return
+	}
+	defer results.Close()
+
+	var groupTypes []GroupType
+	for results.Next() {
+		var groupType GroupType
+		err = results.Scan(
+			&groupType.ID,
+			&groupType.Name,
+			&groupType.Description)
+		if err != nil {
+			printDbError(w)
+		}
+		groupTypes = append(groupTypes, groupType)
+	}
+	printJSON(w, &GroupTypesRequest{GroupTypes: groupTypes})
+}
+
+// GetGroups returns all groups
+func (h Handlers) GetGroups(w http.ResponseWriter, r *http.Request) {
+	groups, err := h.GetGroupsWithUsers()
+	if err != nil {
+		printDbError(w)
+		return
+	}
+	printJSON(w, &GroupRequest{Groups: groups})
+}
