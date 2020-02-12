@@ -14,7 +14,8 @@ import (
 
 // Handlers wrapps DB instance
 type Handlers struct {
-	DB *sql.DB
+	DB     *sql.DB
+	APIKey string
 }
 
 // ShowStatus delivers actual status
@@ -32,6 +33,8 @@ func (h Handlers) GetDoorCode(w http.ResponseWriter, r *http.Request) {
 		printDbError(w)
 		return
 	}
+
+	fmt.Println(h.APIKey)
 
 	printJSON(w, &DoorCodeResponse{DoorCode: doorCode})
 }
