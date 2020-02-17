@@ -14,8 +14,7 @@ import (
 
 // Handlers wrapps DB instance
 type Handlers struct {
-	DB     *sql.DB
-	APIKey string
+	DB *sql.DB
 }
 
 // ShowStatus delivers actual status
@@ -33,8 +32,6 @@ func (h Handlers) GetDoorCode(w http.ResponseWriter, r *http.Request) {
 		printDbError(w)
 		return
 	}
-
-	fmt.Println(h.APIKey)
 
 	printJSON(w, &DoorCodeResponse{DoorCode: doorCode})
 }
@@ -82,6 +79,40 @@ func (h Handlers) LastActiveUsers(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// CreateUser creates Auth0 user and user in app database
+func (h Handlers) CreateUser(w http.ResponseWriter, r *http.Request) {
+	var user User
+	err := json.NewDecoder(r.Body).Decode(&user)
+	if err != nil {
+		printDbError(w)
+		return
+	}
+
+	// first create auth0 user
+	auth0User := Auth0User{
+		Password:   user.Password,
+		Email:      user.Email,
+		Connection: "Username-Password-Authentication",
+	}
+	statusCode := h.CreateAuth0User(auth0User)
+
+	if statusCode != 201 {
+		printCustomError(w, err, statusCode)
+		return
+	}
+
+	// then create user in app db
+	id, err := h.CreateUserData(user)
+	if err != nil {
+		printError(w, err)
+		return
+	}
+
+	printJSON(w, &User{
+		ID: int(id),
+	})
+}
+
 // UpdateUser updates user
 func (h Handlers) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	var user User
@@ -95,9 +126,8 @@ func (h Handlers) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		printError(w, err.Error)
 		return
-	} else {
-		printSuccess(w)
 	}
+	printSuccess(w)
 }
 
 // GetTransactions delivers all payments

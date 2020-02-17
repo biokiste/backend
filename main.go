@@ -39,13 +39,10 @@ func main() {
 	}
 	defer db.Close()
 
-	apiKey := viper.GetString("apikey")
-
 	// create router with db instance
 	router := APIRouter(&RouterConfig{
 		Handlers: &Handlers{
-			DB:     db,
-			APIKey: apiKey,
+			DB: db,
 		},
 	})
 

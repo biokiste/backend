@@ -17,6 +17,12 @@ func printError(w http.ResponseWriter, err interface{}) {
 	json.NewEncoder(w).Encode(err)
 }
 
+func printCustomError(w http.ResponseWriter, err interface{}, status int) {
+	w.Header().Set("Content-Type", "application/vnd.api+json; charset=UTF-8")
+	w.WriteHeader(status)
+	json.NewEncoder(w).Encode(err)
+}
+
 func printDbError(w http.ResponseWriter) {
 	w.Header().Set("Content-Type", "application/vnd.api+json; charset=UTF-8")
 	w.WriteHeader(http.StatusInternalServerError)

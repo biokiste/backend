@@ -5,14 +5,29 @@ type UsersResponse struct {
 	Users []User `json:"data"`
 }
 
+// Auth0Bearer represents token object
+type Auth0Bearer struct {
+	AccessToken string `json:"access_token"`
+	ExpiresIn   int    `json:"expires_in"`
+	TokenType   string `json:"token_type"`
+}
+
+// Auth0User represents Auth0 User data
+type Auth0User struct {
+	Connection string `json:"connection"`
+	UserID     string `json:"user_id"`
+	Email      string `json:"email"`
+	Password   string `json:"password"`
+}
+
 // User holds properties
 type User struct {
 	ID            int     `json:"id"`
-	Username      string  `json:"username"`
-	Email         string  `json:"email"`
-	Lastname      string  `json:"lastname"`
-	Firstname     string  `json:"firstname"`
-	Mobile        string  `json:"mobile"`
+	Username      string  `json:"username,omitempty"`
+	Email         string  `json:"email,omitempty"`
+	Lastname      string  `json:"lastname,omitempty"`
+	Firstname     string  `json:"firstname,omitempty"`
+	Mobile        string  `json:"mobile,omitempty"`
 	NeedSMS       int     `json:"need_sms,omitempty"`
 	Phone         string  `json:"phone,omitempty"`
 	Street        string  `json:"street,omitempty"`
@@ -34,7 +49,7 @@ type User struct {
 	GroupComment  string  `json:"group_comment,omitempty"`
 	CreatedAt     string  `json:"created_at,omitempty"`
 	UpdatedAt     string  `json:"updated_at,omitempty"`
-	LastLogin     string  `json:"last_login"`
+	LastLogin     string  `json:"last_login,omitempty"`
 	Password      string  `json:"password,omitempty"`
 }
 

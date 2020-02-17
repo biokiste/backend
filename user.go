@@ -2,6 +2,27 @@ package main
 
 import "time"
 
+// CreateUserData create auth0 and db user
+func (h Handlers) CreateUserData(user User) (int64, error) {
+	res, err := h.DB.Exec(
+		`INSERT INTO users (email, lastname, firstname, mobile, street, credit_date, password )
+		 VALUES (?,?,?,?,?,?,?)`,
+		user.Email,
+		user.Lastname,
+		user.Firstname,
+		user.Mobile,
+		user.Street,
+		user.CreditDate,
+		user.Password,
+	)
+
+	if err != nil {
+		return 0, err
+	}
+
+	return res.LastInsertId()
+}
+
 // GetAllUser returns all users
 func (h Handlers) GetAllUser() ([]User, error) {
 	var users []User
