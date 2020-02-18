@@ -28,8 +28,12 @@ func (h Handlers) GetAllUser() ([]User, error) {
 	var users []User
 	results, err := h.DB.Query(`
 		SELECT
-			id, username, email, lastname, firstname, mobile, need_sms,
-			street, zip, city, date_of_birth, date_of_entry,
+			id, 
+			COALESCE(username, '') as username,
+			email, lastname, firstname, mobile, need_sms,
+			street, zip, city, 
+			COALESCE(date_of_birth, '') as date_of_birth,			
+			COALESCE(date_of_entry, '') as date_of_entry,
 			COALESCE(date_of_exit, '') as date_of_exit,
 			state, credit, credit_date, credit_comment,
 			COALESCE(iban, '') as iban,
