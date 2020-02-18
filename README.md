@@ -14,7 +14,6 @@ expects connection string of mysql instance in config.toml (app root)
 Create user:
 - POST to `/api/user/auth/create` with body:
 `{
-
 	"email":      "tina@teewurst.org",
 	"password": "**********",
 	"lastname": "teewurst",
@@ -22,8 +21,8 @@ Create user:
 	"mobile": "8348349",
 	"street": "Fleischergasse",
 	"credit_date": "2018-03-12"
-
 }`
+
 
 Insert user transactions:
 - POST to `/api/transaction` with body:
