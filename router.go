@@ -29,5 +29,7 @@ func APIRouter(config *RouterConfig) *mux.Router {
 			Handler(handler)
 	}
 
+	router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("./assets/"))))
+
 	return router
 }
