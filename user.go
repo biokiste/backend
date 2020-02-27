@@ -98,7 +98,7 @@ func (h Handlers) GetLastActiveUsers() ([]User, error) {
 			id, username, email, lastname, firstname, mobile, 
 			COALESCE(last_login, '') as last_login
 		FROM users
-		WHERE last_login > ?
+		WHERE last_login < ?
 		ORDER BY last_login DESC
 		LIMIT 10`, today)
 	if err != nil {
