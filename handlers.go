@@ -79,6 +79,17 @@ func (h Handlers) LastActiveUsers(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// GetUser delivers user for id
+func (h Handlers) GetUser(w http.ResponseWriter, r *http.Request) {
+	id, _ := strconv.Atoi(mux.Vars(r)["id"])
+	user, err := h.GetSingleUser(id)
+	if err != nil {
+		printDbError(w)
+	} else {
+		printJSON(w, &UserResponse{User: user})
+	}
+}
+
 // CreateUser creates Auth0 user and user in app database
 func (h Handlers) CreateUser(w http.ResponseWriter, r *http.Request) {
 	var user User
@@ -90,6 +101,7 @@ func (h Handlers) CreateUser(w http.ResponseWriter, r *http.Request) {
 
 	// first create auth0 user
 	auth0User := Auth0User{
+		UserID:     user.UserID,
 		Password:   user.Password,
 		Email:      user.Email,
 		Connection: "Username-Password-Authentication",
@@ -121,6 +133,19 @@ func (h Handlers) UpdateUser(w http.ResponseWriter, r *http.Request) {
 		printError(w, err)
 		return
 	}
+
+	// first create auth0 user
+	// auth0User := Auth0User{
+	// 	Password:   user.Password,
+	// 	Email:      user.Email,
+	// 	Connection: "Username-Password-Authentication",
+	// }
+	// statusCode := h.UpdateAuth0User(auth0User)
+
+	// if statusCode != 201 {
+	// 	printCustomError(w, err, statusCode)
+	// 	return
+	// }
 
 	err = h.UpdateUserData(user)
 	if err != nil {
@@ -385,3 +410,14 @@ func (h Handlers) GetGroups(w http.ResponseWriter, r *http.Request) {
 	}
 	printJSON(w, &GroupRequest{Groups: groups})
 }
+
+// SendMail sends emails
+// func (h Handlers) SendMail(w http.ResponseWriter, r *http.Request) {
+// 	mailRecipient := "sebastian.koslitz@gmail.com"
+// 	err := h.SendEMail(mailRecipient)
+
+// 	if err != nil {
+// 		printError(w, err)
+// 	}
+// 	printSuccess(w)
+// }

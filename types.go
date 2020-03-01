@@ -5,6 +5,11 @@ type UsersResponse struct {
 	Users []User `json:"data"`
 }
 
+// UserResponse JSON API Spec Wrapper
+type UserResponse struct {
+	User `json:"data"`
+}
+
 // Auth0Bearer represents token object
 type Auth0Bearer struct {
 	AccessToken string `json:"access_token"`
@@ -23,6 +28,7 @@ type Auth0User struct {
 // User holds properties
 type User struct {
 	ID            int     `json:"id"`
+	UserID        string  `json:"user_id"`
 	Username      string  `json:"username,omitempty"`
 	Email         string  `json:"email,omitempty"`
 	Lastname      string  `json:"lastname,omitempty"`

@@ -1,6 +1,9 @@
 package main
 
-import "time"
+import (
+	"fmt"
+	"time"
+)
 
 // CreateUserData create auth0 and db user
 func (h Handlers) CreateUserData(user User) (int64, error) {
@@ -123,6 +126,49 @@ func (h Handlers) GetLastActiveUsers() ([]User, error) {
 		users = append(users, user)
 	}
 	return users, nil
+}
+
+// GetSingleUser returns user
+func (h Handlers) GetSingleUser(id int) (User, error) {
+	var user User
+	if err := h.DB.QueryRow(`
+		SELECT
+			id, 
+			COALESCE(username, '') as username,
+			email, lastname, firstname, mobile,
+			street, zip, city, 
+			COALESCE(date_of_birth, '') as date_of_birth,			
+			COALESCE(date_of_entry, '') as date_of_entry,
+			COALESCE(date_of_exit, '') as date_of_exit,
+			COALESCE(group_comment, '') as group_comment,
+			state, credit, credit_date, credit_comment,						
+			COALESCE(last_login, '') as last_login
+		FROM users
+		WHERE id = ?`, id).Scan(
+		&user.ID,
+		&user.Username,
+		&user.Email,
+		&user.Lastname,
+		&user.Firstname,
+		&user.Mobile,
+		&user.Street,
+		&user.ZIP,
+		&user.City,
+		&user.DateOfBirth,
+		&user.DateOfEntry,
+		&user.DateOfExit,
+		&user.GroupComment,
+		&user.State,
+		&user.Credit,
+		&user.CreditDate,
+		&user.CreditComment,
+		&user.LastLogin,
+	); err != nil {
+		fmt.Println(err)
+		return user, err
+	}
+	return user, nil
+
 }
 
 // UpdateUserData updates user
