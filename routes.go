@@ -55,10 +55,16 @@ func GetRoutes(h *Handlers) Routes {
 			h.GetUser,
 		},
 		Route{
-			"GetAuth0User",
+			"CreateAuth0User",
 			"POST",
 			"/api/user/auth/create",
 			h.CreateUser,
+		},
+		Route{
+			"GetAuth0User",
+			"GET",
+			"/api/user/auth/{id}",
+			h.GetAuth0User,
 		},
 		Route{
 			"UpdateUser",

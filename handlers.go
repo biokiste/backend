@@ -90,6 +90,18 @@ func (h Handlers) GetUser(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// GetAuth0User delivers auth0 user data
+func (h Handlers) GetAuth0User(w http.ResponseWriter, r *http.Request) {
+	id, _ := (mux.Vars(r)["id"])
+	var user Auth0User
+	user, err := h.Auth0GetUser(id)
+	if err != nil {
+		printError(w, err)
+	} else {
+		printJSON(w, user)
+	}
+}
+
 // CreateUser creates Auth0 user and user in app database
 func (h Handlers) CreateUser(w http.ResponseWriter, r *http.Request) {
 	var user User

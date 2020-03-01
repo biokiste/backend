@@ -3,7 +3,6 @@ package main
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"strings"
 
@@ -11,6 +10,7 @@ import (
 )
 
 const usersByMail = "api/v2/users-by-email?email="
+const usersByID = "api/v2/users/"
 const users = "api/v2/users"
 
 func getToken() (string, error) {
@@ -35,18 +35,17 @@ func getToken() (string, error) {
 	return authOBearer.AccessToken, nil
 }
 
-// GetAuth0UsersByEmail returns Auth0 user data
-func (h Handlers) GetAuth0UsersByEmail(email string) ([]User, error) {
+// Auth0GetUser returns Auth0 user data
+func (h Handlers) Auth0GetUser(id string) (Auth0User, error) {
 	auth0URI := viper.GetString("auth0URI")
 	apikey, err := getToken()
-	var users []User
+	var user Auth0User
 
 	if err != nil {
-		return users, err
+		return user, err
 	}
 
-	req, err := http.NewRequest("GET", auth0URI+usersByMail+email, nil)
-	fmt.Println(req)
+	req, err := http.NewRequest("GET", auth0URI+usersByID+id, nil)
 	req.Header.Add("Authorization", "Bearer "+apikey)
 
 	client := &http.Client{}
@@ -56,9 +55,9 @@ func (h Handlers) GetAuth0UsersByEmail(email string) ([]User, error) {
 	}
 	defer resp.Body.Close()
 
-	json.NewDecoder(resp.Body).Decode(&users)
+	json.NewDecoder(resp.Body).Decode(&user)
 
-	return users, nil
+	return user, nil
 }
 
 // CreateAuth0User creates user at auth0
@@ -84,3 +83,26 @@ func (h Handlers) CreateAuth0User(user Auth0User) int {
 
 	return resp.StatusCode
 }
+
+// func (h Handlers) UpdateAuth0User(user Auth0User) int {
+// 	auth0URI := viper.GetString("auth0URI")
+// 	apikey, err := getToken()
+
+// 	if err != nil {
+// 		return 500
+// 	}
+
+// 	jsonValue, _ := json.Marshal(user)
+// 	req, err := http.NewRequest("PATCH", auth0URI+users, bytes.NewBuffer(jsonValue))
+// 	req.Header.Add("Content-Type", "application/json")
+// 	req.Header.Add("Authorization", "Bearer "+apikey)
+
+// 	client := &http.Client{}
+// 	resp, err := client.Do(req)
+// 	if err != nil {
+// 		return 500
+// 	}
+// 	defer resp.Body.Close()
+
+// 	return resp.StatusCode
+// }
