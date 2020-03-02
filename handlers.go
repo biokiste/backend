@@ -80,9 +80,20 @@ func (h Handlers) LastActiveUsers(w http.ResponseWriter, r *http.Request) {
 }
 
 // GetUser delivers user for id
-func (h Handlers) GetUser(w http.ResponseWriter, r *http.Request) {
-	id, _ := strconv.Atoi(mux.Vars(r)["id"])
-	user, err := h.GetSingleUser(id)
+// func (h Handlers) GetUser(w http.ResponseWriter, r *http.Request) {
+// 	id, _ := strconv.Atoi(mux.Vars(r)["id"])
+// 	user, err := h.GetSingleUser(id)
+// 	if err != nil {
+// 		printDbError(w)
+// 	} else {
+// 		printJSON(w, &UserResponse{User: user})
+// 	}
+// }
+
+// GetUserByEmail delivers user for email
+func (h Handlers) GetUserByEmail(w http.ResponseWriter, r *http.Request) {
+	email, _ := mux.Vars(r)["email"]
+	user, err := h.GetSingleUserByIEmail(email)
 	if err != nil {
 		printDbError(w)
 	} else {

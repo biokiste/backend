@@ -48,11 +48,17 @@ func GetRoutes(h *Handlers) Routes {
 			"/api/users/lastactive",
 			h.LastActiveUsers,
 		},
+		// Route{
+		// 	"GetUserById",
+		// 	"GET",
+		// 	"/api/users/{id}",
+		// 	h.GetUser,
+		// },
 		Route{
-			"LastActiveUsers",
+			"GetUserByEmail",
 			"GET",
-			"/api/users/{id}",
-			h.GetUser,
+			"/api/users/{email}",
+			h.GetUserByEmail,
 		},
 		Route{
 			"CreateAuth0User",
