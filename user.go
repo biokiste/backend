@@ -240,7 +240,7 @@ func (h Handlers) UpdateUserData(user User) error {
 func (h Handlers) GetBalance(id int) (Balance, error) {
 	var userBalance Balance
 	if err := h.DB.QueryRow(
-		`SELECT SUM(amount)
+		`SELECT COALESCE(SUM(amount),0)
 		 FROM transactions
 		 WHERE user_id = ?`, id).Scan(&userBalance); err != nil {
 		return userBalance, err
