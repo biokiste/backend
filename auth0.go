@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -84,25 +85,26 @@ func (h Handlers) CreateAuth0User(user Auth0User) int {
 	return resp.StatusCode
 }
 
-// func (h Handlers) UpdateAuth0User(user Auth0User) int {
-// 	auth0URI := viper.GetString("auth0URI")
-// 	apikey, err := getToken()
+// UpdateAuth0User updates user at auth0
+func (h Handlers) UpdateAuth0User(user Auth0User) error {
+	auth0URI := viper.GetString("auth0URI")
+	apikey, err := getToken()
 
-// 	if err != nil {
-// 		return 500
-// 	}
+	if err != nil {
+		return err
+	}
+	fmt.Println(user)
+	jsonValue, _ := json.Marshal(user)
+	req, err := http.NewRequest("PATCH", auth0URI+usersByID+user.UserID, bytes.NewBuffer(jsonValue))
+	req.Header.Add("Content-Type", "application/json")
+	req.Header.Add("Authorization", "Bearer "+apikey)
 
-// 	jsonValue, _ := json.Marshal(user)
-// 	req, err := http.NewRequest("PATCH", auth0URI+users, bytes.NewBuffer(jsonValue))
-// 	req.Header.Add("Content-Type", "application/json")
-// 	req.Header.Add("Authorization", "Bearer "+apikey)
-
-// 	client := &http.Client{}
-// 	resp, err := client.Do(req)
-// 	if err != nil {
-// 		return 500
-// 	}
-// 	defer resp.Body.Close()
-
-// 	return resp.StatusCode
-// }
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+	fmt.Println(resp)
+	defer resp.Body.Close()
+	return nil
+}

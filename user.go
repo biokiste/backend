@@ -233,7 +233,20 @@ func (h Handlers) UpdateUserData(user User) error {
 		user.DateOfEntry,
 		user.ID,
 	)
-	return err
+	if err != nil {
+		return err
+	}
+
+	err = h.UpdateAuth0User(Auth0User{
+		Email:      user.Email,
+		UserID:     user.UserID,
+		Connection: "Username-Password-Authentication",
+	})
+
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 // GetBalance returns actual user balance

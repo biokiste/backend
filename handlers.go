@@ -157,19 +157,6 @@ func (h Handlers) UpdateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// first create auth0 user
-	// auth0User := Auth0User{
-	// 	Password:   user.Password,
-	// 	Email:      user.Email,
-	// 	Connection: "Username-Password-Authentication",
-	// }
-	// statusCode := h.UpdateAuth0User(auth0User)
-
-	// if statusCode != 201 {
-	// 	printCustomError(w, err, statusCode)
-	// 	return
-	// }
-
 	err = h.UpdateUserData(user)
 	if err != nil {
 		printError(w, err.Error)
