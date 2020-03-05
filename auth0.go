@@ -3,7 +3,6 @@ package main
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"strings"
 
@@ -86,16 +85,17 @@ func (h Handlers) CreateAuth0User(user Auth0User) int {
 }
 
 // UpdateAuth0User updates user at auth0
-func (h Handlers) UpdateAuth0User(user Auth0User) error {
+func (h Handlers) UpdateAuth0User(user Auth0User, userID string) error {
 	auth0URI := viper.GetString("auth0URI")
 	apikey, err := getToken()
 
 	if err != nil {
 		return err
 	}
-	fmt.Println(user)
+
 	jsonValue, _ := json.Marshal(user)
-	req, err := http.NewRequest("PATCH", auth0URI+usersByID+user.UserID, bytes.NewBuffer(jsonValue))
+
+	req, err := http.NewRequest("PATCH", auth0URI+usersByID+userID, bytes.NewBuffer(jsonValue))
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Add("Authorization", "Bearer "+apikey)
 
@@ -104,7 +104,10 @@ func (h Handlers) UpdateAuth0User(user Auth0User) error {
 	if err != nil {
 		return err
 	}
-	fmt.Println(resp)
+
 	defer resp.Body.Close()
+	if resp.StatusCode != 200 {
+		return err
+	}
 	return nil
 }

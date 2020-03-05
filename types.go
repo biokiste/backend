@@ -20,10 +20,10 @@ type Auth0Bearer struct {
 // Auth0User represents Auth0 User data
 type Auth0User struct {
 	Connection string `json:"connection"`
-	UserID     string `json:"user_id"`
+	UserID     string `json:"user_id,omitempty"`
 	Email      string `json:"email"`
-	Password   string `json:"password"`
-	LastLogin  string `json:"last_login"`
+	Password   string `json:"password,omitempty"`
+	LastLogin  string `json:"last_login,omitempty"`
 }
 
 // User holds properties

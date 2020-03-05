@@ -239,9 +239,8 @@ func (h Handlers) UpdateUserData(user User) error {
 
 	err = h.UpdateAuth0User(Auth0User{
 		Email:      user.Email,
-		UserID:     user.UserID,
 		Connection: "Username-Password-Authentication",
-	})
+	}, user.UserID)
 
 	if err != nil {
 		return err
