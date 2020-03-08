@@ -91,6 +91,12 @@ func GetRoutes(h *Handlers) Routes {
 			h.GetTransactionTypes,
 		},
 		Route{
+			"GetTransactionState",
+			"GET",
+			"/api/transactions/states",
+			h.GetTransactionStates,
+		},
+		Route{
 			"GetTransactionsByUser",
 			"GET",
 			"/api/transactions/user/{id}",

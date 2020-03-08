@@ -284,6 +284,32 @@ func (h Handlers) GetTransactionTypes(w http.ResponseWriter, r *http.Request) {
 	printJSON(w, &TransactionCategoryResponse{TransactionCategories: transactionCategories})
 }
 
+// GetTransactionStates delivers transaction states
+func (h Handlers) GetTransactionStates(w http.ResponseWriter, r *http.Request) {
+	results, err := h.DB.Query(`
+		SELECT id, type
+		FROM transactions_status
+	`)
+	if err != nil {
+		printDbError(w)
+		return
+	}
+	defer results.Close()
+
+	var transactionStates []TransactionState
+	for results.Next() {
+		var transactionState TransactionState
+		err = results.Scan(
+			&transactionState.ID,
+			&transactionState.Type)
+		if err != nil {
+			printDbError(w)
+		}
+		transactionStates = append(transactionStates, transactionState)
+	}
+	printJSON(w, &TransactionStateResponse{TransactionStates: transactionStates})
+}
+
 // AddTransaction updates user balance with transactions
 func (h Handlers) AddTransaction(w http.ResponseWriter, r *http.Request) {
 	var transactionRequest TransactionRequest

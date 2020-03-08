@@ -118,6 +118,17 @@ type TransactionCategory struct {
 	Description string `json:"description"`
 }
 
+// TransactionStateResponse JSON API Spec Wrapper
+type TransactionStateResponse struct {
+	TransactionStates []TransactionState `json:"data"`
+}
+
+// TransactionState implements states of a transaction
+type TransactionState struct {
+	ID   int    `json:"id"`
+	Type string `json:"type"`
+}
+
 // TransactionRequest implements user and requested transactions
 type TransactionRequest struct {
 	Transactions []Transaction `json:"transactions"`
