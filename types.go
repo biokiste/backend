@@ -165,3 +165,9 @@ type Group struct {
 type GroupRequest struct {
 	Groups []Group `json:"data"`
 }
+
+// UserState lists all possible user states
+type UserState struct {
+	ID          int    `json:"id"`
+	Description string `json:"description"`
+}

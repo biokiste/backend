@@ -447,6 +447,39 @@ func (h Handlers) GetGroups(w http.ResponseWriter, r *http.Request) {
 	printJSON(w, &GroupRequest{Groups: groups})
 }
 
+// GetUserStates returns possible user states
+func (h Handlers) GetUserStates(w http.ResponseWriter, r *http.Request) {
+
+	var items []UserState
+	results, err := h.DB.Query(`
+		SELECT id, description
+		FROM user_states`)
+	if err != nil {
+		printDbError(w)
+		return
+	}
+
+	defer results.Close()
+
+	for results.Next() {
+		var item UserState
+		err = results.Scan(
+			&item.ID,
+			&item.Description,
+		)
+		if err != nil {
+			printDbError(w)
+			return
+		}
+		items = append(items, item)
+	}
+
+	type Data struct {
+		Items []UserState `json:"data"`
+	}
+	printJSON(w, &Data{Items: items})
+}
+
 // SendMail sends emails
 // func (h Handlers) SendMail(w http.ResponseWriter, r *http.Request) {
 // 	mailRecipient := "sebastian.koslitz@gmail.com"

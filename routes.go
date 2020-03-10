@@ -132,6 +132,12 @@ func GetRoutes(h *Handlers) Routes {
 			"/api/groups",
 			h.GetGroups,
 		},
+		Route{
+			"GetUserStates",
+			"GET",
+			"/api/states/users",
+			h.GetUserStates,
+		},
 		// Route{
 		// 	"SendMail",
 		// 	"GET",
