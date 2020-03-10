@@ -94,14 +94,14 @@ func (h Handlers) GetAllUser() ([]User, error) {
 // GetLastActiveUsers returns ten last active users
 func (h Handlers) GetLastActiveUsers() ([]User, error) {
 	var users []User
-	today := time.Now().Format("2006-01-02")
+	today := time.Now().Format("2006-01-02 15:04:05")
 
 	results, err := h.DB.Query(`
 		SELECT
 			id, username, email, lastname, firstname, mobile, 
 			COALESCE(last_login, '') as last_login
 		FROM users
-		WHERE last_login < ?
+		WHERE last_login <= ?
 		ORDER BY last_login DESC
 		LIMIT 10`, today)
 	if err != nil {
@@ -258,4 +258,22 @@ func (h Handlers) GetBalance(id int) (Balance, error) {
 		return userBalance, err
 	}
 	return userBalance, nil
+}
+
+// LogUserTransaction sets timestamp of last transaction
+func (h Handlers) LogUserTransaction(userID int) error {
+	today := time.Now().Format("2006-01-02 15:04:05")
+
+	_, err := h.DB.Exec(
+		`UPDATE users
+		 SET last_login = ?
+		 WHERE id = ?`,
+		today,
+		userID,
+	)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

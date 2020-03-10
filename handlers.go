@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"strconv"
 
@@ -330,8 +329,8 @@ func (h Handlers) AddTransaction(w http.ResponseWriter, r *http.Request) {
 				reason) VALUES(?,?,?,?,?,?)
 		`)
 		if err != nil {
-			// TODO push error to error[] and send printError
-			log.Fatal(err)
+			printDbError(w)
+			return
 		}
 		_, err = stmt.Exec(
 			transactionRequest.User.ID,
@@ -342,9 +341,15 @@ func (h Handlers) AddTransaction(w http.ResponseWriter, r *http.Request) {
 			t.Reason,
 		)
 		if err != nil {
-			// TODO push error to error[] and send printError
-			log.Fatal(err)
+			printDbError(w)
+			return
 		}
+	}
+
+	err = h.LogUserTransaction(transactionRequest.User.ID)
+	if err != nil {
+		printDbError(w)
+		return
 	}
 
 	balance, err := h.GetBalance(transactionRequest.User.ID)
