@@ -251,27 +251,6 @@ func (h Handlers) GetTransactionTypes(w http.ResponseWriter, r *http.Request) {
 	printJSON(w, &TransactionCategoryResponse{TransactionCategories: transactionCategories})
 }
 
-// GetTransactionStates delivers transaction states
-func (h Handlers) GetTransactionStates(w http.ResponseWriter, r *http.Request) {
-	results, err := h.DB.Query(`
-		SELECT id, type
-		FROM transactions_status
-	`)
-	if err != nil {
-		printDbError(w)
-		return
-	}
-	defer results.Close()
-
-	var transactionStates []TransactionState
-	scanner.Scan(results, &transactionStates)
-	if err != nil {
-		printDbError(w)
-	}
-
-	printJSON(w, &TransactionStateResponse{TransactionStates: transactionStates})
-}
-
 // AddTransaction updates user balance with transactions
 func (h Handlers) AddTransaction(w http.ResponseWriter, r *http.Request) {
 	var transactionRequest TransactionRequest
@@ -397,28 +376,31 @@ func (h Handlers) GetGroups(w http.ResponseWriter, r *http.Request) {
 
 // GetUserStates returns possible user states
 func (h Handlers) GetUserStates(w http.ResponseWriter, r *http.Request) {
-
-	var items []UserState
-	results, err := h.DB.Query(`
-		SELECT id, description
-		FROM user_states`)
-	if err != nil {
-		printDbError(w)
-		return
-	}
-
-	defer results.Close()
-
-	err = scanner.Scan(results, &items)
+	states, err := h.UserStates()
 	if err != nil {
 		printDbError(w)
 		return
 	}
 
 	type Data struct {
-		Items []UserState `json:"data"`
+		States []UserState `json:"data"`
 	}
-	printJSON(w, &Data{Items: items})
+	printJSON(w, &Data{States: states})
+
+}
+
+// GetTransactionStates delivers transaction states
+func (h Handlers) GetTransactionStates(w http.ResponseWriter, r *http.Request) {
+	states, err := h.TransactionStates()
+	if err != nil {
+		printDbError(w)
+		return
+	}
+
+	type Data struct {
+		States []TransactionState `json:"data"`
+	}
+	printJSON(w, &Data{States: states})
 
 }
 
