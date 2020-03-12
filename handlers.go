@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/didi/gendry/scanner"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/mux"
 )
@@ -183,23 +184,10 @@ func (h Handlers) GetTransactions(w http.ResponseWriter, r *http.Request) {
 
 	defer results.Close()
 	var transactions []Transaction
-	for results.Next() {
-		var transaction Transaction
 
-		err = results.Scan(
-			&transaction.ID,
-			&transaction.Amount,
-			&transaction.CreatedAt,
-			&transaction.FirstName,
-			&transaction.LastName,
-			&transaction.Status,
-			&transaction.Reason,
-			&transaction.CategoryID,
-			&transaction.Type)
-		if err != nil {
-			printError(w, err)
-		}
-		transactions = append(transactions, transaction)
+	err = scanner.Scan(results, &transactions)
+	if err != nil {
+		printError(w, err)
 	}
 
 	printJSON(w, &TransactionResponse{Transactions: transactions})
@@ -225,23 +213,9 @@ func (h Handlers) GetTransactionsByUser(w http.ResponseWriter, r *http.Request) 
 
 	defer results.Close()
 	var transactions []Transaction
-	for results.Next() {
-		var transaction Transaction
-
-		err = results.Scan(
-			&transaction.ID,
-			&transaction.Amount,
-			&transaction.CreatedAt,
-			&transaction.FirstName,
-			&transaction.LastName,
-			&transaction.Status,
-			&transaction.Reason,
-			&transaction.CategoryID,
-			&transaction.Type)
-		if err != nil {
-			printError(w, err)
-		}
-		transactions = append(transactions, transaction)
+	err = scanner.Scan(results, &transactions)
+	if err != nil {
+		printError(w, err)
 	}
 
 	userBalance, err := h.GetBalance(id)
@@ -269,17 +243,11 @@ func (h Handlers) GetTransactionTypes(w http.ResponseWriter, r *http.Request) {
 	defer results.Close()
 
 	var transactionCategories []TransactionCategory
-	for results.Next() {
-		var transactionCategory TransactionCategory
-		err = results.Scan(
-			&transactionCategory.ID,
-			&transactionCategory.Type,
-			&transactionCategory.Description)
-		if err != nil {
-			printDbError(w)
-		}
-		transactionCategories = append(transactionCategories, transactionCategory)
+	scanner.Scan(results, &transactionCategories)
+	if err != nil {
+		printDbError(w)
 	}
+
 	printJSON(w, &TransactionCategoryResponse{TransactionCategories: transactionCategories})
 }
 
@@ -296,16 +264,11 @@ func (h Handlers) GetTransactionStates(w http.ResponseWriter, r *http.Request) {
 	defer results.Close()
 
 	var transactionStates []TransactionState
-	for results.Next() {
-		var transactionState TransactionState
-		err = results.Scan(
-			&transactionState.ID,
-			&transactionState.Type)
-		if err != nil {
-			printDbError(w)
-		}
-		transactionStates = append(transactionStates, transactionState)
+	scanner.Scan(results, &transactionStates)
+	if err != nil {
+		printDbError(w)
 	}
+
 	printJSON(w, &TransactionStateResponse{TransactionStates: transactionStates})
 }
 
@@ -392,23 +355,9 @@ func (h Handlers) GetOpenPayments(w http.ResponseWriter, r *http.Request) {
 
 	defer results.Close()
 	var transactions []Transaction
-	for results.Next() {
-		var transaction Transaction
-
-		err = results.Scan(
-			&transaction.ID,
-			&transaction.Amount,
-			&transaction.CreatedAt,
-			&transaction.FirstName,
-			&transaction.LastName,
-			&transaction.Status,
-			&transaction.Reason,
-			&transaction.CategoryID,
-			&transaction.Type)
-		if err != nil {
-			printDbError(w)
-		}
-		transactions = append(transactions, transaction)
+	err = scanner.Scan(results, &transactions)
+	if err != nil {
+		printDbError(w)
 	}
 
 	printJSON(w, &TransactionResponse{Transactions: transactions})
@@ -428,17 +377,11 @@ func (h Handlers) GetGroupTypes(w http.ResponseWriter, r *http.Request) {
 	defer results.Close()
 
 	var groupTypes []GroupType
-	for results.Next() {
-		var groupType GroupType
-		err = results.Scan(
-			&groupType.ID,
-			&groupType.Name,
-			&groupType.Description)
-		if err != nil {
-			printDbError(w)
-		}
-		groupTypes = append(groupTypes, groupType)
+	err = scanner.Scan(results, &groupTypes)
+	if err != nil {
+		printDbError(w)
 	}
+
 	printJSON(w, &GroupTypesRequest{GroupTypes: groupTypes})
 }
 
@@ -466,23 +409,17 @@ func (h Handlers) GetUserStates(w http.ResponseWriter, r *http.Request) {
 
 	defer results.Close()
 
-	for results.Next() {
-		var item UserState
-		err = results.Scan(
-			&item.ID,
-			&item.Description,
-		)
-		if err != nil {
-			printDbError(w)
-			return
-		}
-		items = append(items, item)
+	err = scanner.Scan(results, &items)
+	if err != nil {
+		printDbError(w)
+		return
 	}
 
 	type Data struct {
 		Items []UserState `json:"data"`
 	}
 	printJSON(w, &Data{Items: items})
+
 }
 
 // SendMail sends emails

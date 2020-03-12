@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/didi/gendry/scanner"
 	"github.com/spf13/viper"
 )
 
@@ -38,6 +39,9 @@ func main() {
 		log.Fatal(err)
 	}
 	defer db.Close()
+
+	// set tag name for sql scanner
+	scanner.SetTagName("json")
 
 	// create router with db instance
 	router := APIRouter(&RouterConfig{
