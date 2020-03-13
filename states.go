@@ -2,24 +2,13 @@ package main
 
 import (
 	"github.com/didi/gendry/scanner"
+	"github.com/spf13/viper"
 )
 
 // UserStates returns possible user states
-func (h Handlers) UserStates() ([]UserState, error) {
-	var states []UserState
-	results, err := h.DB.Query(`
-		SELECT id, description
-		FROM user_states`)
-	if err != nil {
-		return states, err
-	}
-
-	defer results.Close()
-
-	err = scanner.Scan(results, &states)
-	if err != nil {
-		return states, err
-	}
+func (h Handlers) UserStates() ([]string, error) {
+	var states []string
+	states = viper.GetStringSlice("userstate")
 
 	return states, nil
 }

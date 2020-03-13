@@ -383,7 +383,7 @@ func (h Handlers) GetUserStates(w http.ResponseWriter, r *http.Request) {
 	}
 
 	type Data struct {
-		States []UserState `json:"data"`
+		States []string `json:"data"`
 	}
 	printJSON(w, &Data{States: states})
 
