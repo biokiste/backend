@@ -10,6 +10,7 @@ import (
 	"github.com/didi/gendry/scanner"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/mux"
+	"github.com/spf13/viper"
 )
 
 // Handlers wrapps DB instance
@@ -230,27 +231,6 @@ func (h Handlers) GetTransactionsByUser(w http.ResponseWriter, r *http.Request) 
 	})
 }
 
-// GetTransactionTypes delivers transaction categories
-func (h Handlers) GetTransactionTypes(w http.ResponseWriter, r *http.Request) {
-	results, err := h.DB.Query(`
-		SELECT id, type, description
-		FROM transactions_category
-	`)
-	if err != nil {
-		printDbError(w)
-		return
-	}
-	defer results.Close()
-
-	var transactionCategories []TransactionCategory
-	scanner.Scan(results, &transactionCategories)
-	if err != nil {
-		printDbError(w)
-	}
-
-	printJSON(w, &TransactionCategoryResponse{TransactionCategories: transactionCategories})
-}
-
 // AddTransaction updates user balance with transactions
 func (h Handlers) AddTransaction(w http.ResponseWriter, r *http.Request) {
 	var transactionRequest TransactionRequest
@@ -374,34 +354,25 @@ func (h Handlers) GetGroups(w http.ResponseWriter, r *http.Request) {
 	printJSON(w, &GroupRequest{Groups: groups})
 }
 
-// GetUserStates returns possible user states
+// GetUserStates returns user states
 func (h Handlers) GetUserStates(w http.ResponseWriter, r *http.Request) {
-	states, err := h.UserStates()
-	if err != nil {
-		printDbError(w)
-		return
-	}
-
-	type Data struct {
-		States []string `json:"data"`
-	}
-	printJSON(w, &Data{States: states})
-
+	var states []string
+	states = viper.GetStringSlice("user_states")
+	printJSON(w, &states)
 }
 
-// GetTransactionStates delivers transaction states
+// GetTransactionStates returns transaction states
 func (h Handlers) GetTransactionStates(w http.ResponseWriter, r *http.Request) {
-	states, err := h.TransactionStates()
-	if err != nil {
-		printDbError(w)
-		return
-	}
+	var states []string
+	states = viper.GetStringSlice("transaction_states")
+	printJSON(w, &states)
+}
 
-	type Data struct {
-		States []TransactionState `json:"data"`
-	}
-	printJSON(w, &Data{States: states})
-
+// GetTransactionTypes return transaction types
+func (h Handlers) GetTransactionTypes(w http.ResponseWriter, r *http.Request) {
+	var types []string
+	types = viper.GetStringSlice("transaction_types")
+	printJSON(w, &types)
 }
 
 // SendMail sends emails

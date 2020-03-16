@@ -85,12 +85,6 @@ func GetRoutes(h *Handlers) Routes {
 			h.GetTransactions,
 		},
 		Route{
-			"GetTransactionTypes",
-			"GET",
-			"/api/transactions/types",
-			h.GetTransactionTypes,
-		},
-		Route{
 			"GetTransactionsByUser",
 			"GET",
 			"/api/transactions/user/{id}",
@@ -129,7 +123,7 @@ func GetRoutes(h *Handlers) Routes {
 		Route{
 			"GetUserStates",
 			"GET",
-			"/api/states/users",
+			"/api/states/user",
 			h.GetUserStates,
 		},
 		Route{
@@ -137,6 +131,18 @@ func GetRoutes(h *Handlers) Routes {
 			"GET",
 			"/api/states/transaction",
 			h.GetTransactionStates,
+		},
+		Route{
+			"GetTransactionState",
+			"GET",
+			"/api/states/loan",
+			h.GetTransactionStates,
+		},
+		Route{
+			"GetTransactionTypes",
+			"GET",
+			"/api/types/transaction",
+			h.GetTransactionTypes,
 		},
 		// Route{
 		// 	"SendMail",

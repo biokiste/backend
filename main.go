@@ -24,7 +24,7 @@ func init() {
 	viper.AddConfigPath(*configPath) // path to look for the config file in
 	err := viper.ReadInConfig()
 	if err != nil {
-		fmt.Println("Die Konfigurationsdatei config.toml konnte nicht gefunden werden!")
+		fmt.Println("Couldn't find config.toml!")
 		log.Fatal(err)
 	}
 

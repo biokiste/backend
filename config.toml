@@ -1,2 +1,4 @@
 connection = "root:root@tcp(127.0.0.1:8889)/foodkoop_biokiste"
-userstate = ["active", "former", "paused"]
+user_states = ["active", "former", "paused"]
+transaction_states = ["open", "accepted", "rejected"]
+transaction_types = ["payment", "deposit", "percent19", "percent7", "paymentSepa"]
