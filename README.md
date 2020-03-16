@@ -8,6 +8,22 @@ expects connection string of mysql instance in config.toml (app root)
 - compile backend with `go build`
 - run backend with `./backend`
 
+## new database tables
+
+### Settings
+
+```sql
+CREATE TABLE `Settings` (
+  `ID` int(11) NOT NULL,
+  `ItemKey` varchar(255) NOT NULL,
+  `ItemValue` varchar(255) NOT NULL,
+  `CreatedAt` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `CreatedBy` int(11) NOT NULL,
+  `UpdatedAt` datetime DEFAULT NULL,
+  `UpdatedBy` int(11) DEFAULT NULL,
+  `UpdateComment` varchar(255) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+```
 
 ### api 
 

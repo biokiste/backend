@@ -375,6 +375,53 @@ func (h Handlers) GetTransactionTypes(w http.ResponseWriter, r *http.Request) {
 	printJSON(w, &types)
 }
 
+// AddSetting store new setting
+func (h Handlers) AddSetting(w http.ResponseWriter, r *http.Request) {
+	type Setting struct {
+		Key       string `json:"key"`
+		Value     string `json:"value"`
+		CreatedBy int    `json:"createdBy"`
+	}
+
+	var setting Setting
+	err := json.NewDecoder(r.Body).Decode(&setting)
+	if err != nil {
+		printDbError(w)
+		return
+	}
+
+	// TODO: Validate data – e.g. if all fields set
+
+	res, err := h.DB.Exec(
+		`INSERT INTO Settings (ItemKey, ItemValue, CreatedBy)
+		 VALUES (?,?,?)`,
+		setting.Key,
+		setting.Value,
+		setting.CreatedBy,
+	)
+
+	if err != nil {
+		printDbError(w)
+		return
+	}
+
+	type Response struct {
+		ID int `json:"id"`
+	}
+
+	id, err := res.LastInsertId()
+
+	if err != nil {
+		printDbError(w)
+		return
+	}
+
+	printJSON(w, &Response{
+		ID: int(id),
+	})
+
+}
+
 // SendMail sends emails
 // func (h Handlers) SendMail(w http.ResponseWriter, r *http.Request) {
 // 	mailRecipient := "sebastian.koslitz@gmail.com"
