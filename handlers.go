@@ -375,6 +375,65 @@ func (h Handlers) GetTransactionTypes(w http.ResponseWriter, r *http.Request) {
 	printJSON(w, &types)
 }
 
+// GetSettings get all setting
+func (h Handlers) GetSettings(w http.ResponseWriter, r *http.Request) {
+	type Setting struct {
+		ID            int    `json:"id"`
+		ItemKey       string `json:"key"`
+		ItemValue     string `json:"value"`
+		CreatedAt     string `json:"createdAt"`
+		CreatedBy     int    `json:"createdBy"`
+		UpdatedAt     string `json:"updatedAt,omitempty"`
+		UpdatedBy     int    `json:"updatedBy,omitempty"`
+		UpdateComment string `json:"updateComment,omitempty"`
+	}
+
+	results, err := h.DB.Query(`
+		SELECT 
+			ID,
+			ItemKey,
+			ItemValue,
+			CreatedAt,
+			CreatedBy,
+			COALESCE(UpdatedAt, '') AS UpdatedAt,
+			COALESCE(UpdatedBy, -1) AS UpdatedBy,
+			COALESCE(UpdateComment, '') AS UpdateComment
+		FROM Settings
+	`)
+	if err != nil {
+		printDbError(w)
+		return
+	}
+	defer results.Close()
+
+	var settings []Setting
+
+	for results.Next() {
+		var setting Setting
+		err = results.Scan(
+			&setting.ID,
+			&setting.ItemKey,
+			&setting.ItemValue,
+			&setting.CreatedAt,
+			&setting.CreatedBy,
+			&setting.UpdatedAt,
+			&setting.UpdatedBy,
+			&setting.UpdateComment,
+		)
+		if err != nil {
+			printDbError(w)
+			return
+		}
+		settings = append(settings, setting)
+	}
+
+	if len(settings) == 0 {
+		settings = make([]Setting, 0)
+	}
+
+	printJSON(w, &settings)
+}
+
 // AddSetting store new setting
 func (h Handlers) AddSetting(w http.ResponseWriter, r *http.Request) {
 	type Setting struct {
@@ -419,7 +478,6 @@ func (h Handlers) AddSetting(w http.ResponseWriter, r *http.Request) {
 	printJSON(w, &Response{
 		ID: int(id),
 	})
-
 }
 
 // SendMail sends emails

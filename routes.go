@@ -145,6 +145,12 @@ func GetRoutes(h *Handlers) Routes {
 			h.GetTransactionTypes,
 		},
 		Route{
+			"GetSettings",
+			"GET",
+			"/api/settings",
+			h.GetSettings,
+		},
+		Route{
 			"AddSetting",
 			"POST",
 			"/api/settings",
