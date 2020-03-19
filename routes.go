@@ -25,12 +25,6 @@ func GetRoutes(h *Handlers) Routes {
 			h.ShowStatus,
 		},
 		Route{
-			"UpdateDoorCode",
-			"PATCH",
-			"/api/settings/doorcode",
-			h.UpdateDoorCode,
-		},
-		Route{
 			"ListUsers",
 			"GET",
 			"/api/users",
@@ -149,6 +143,12 @@ func GetRoutes(h *Handlers) Routes {
 			"GET",
 			"/api/settings/{key}",
 			h.GetSettingByKey,
+		},
+		Route{
+			"UpdateSettingByKey",
+			"PATCH",
+			"/api/settings/{key}",
+			h.UpdateSettingByKey,
 		},
 		Route{
 			"AddSetting",

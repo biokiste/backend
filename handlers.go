@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/didi/gendry/scanner"
 	_ "github.com/go-sql-driver/mysql"
@@ -466,16 +467,67 @@ func (h Handlers) GetSettingByKey(w http.ResponseWriter, r *http.Request) {
 	printJSON(w, &s)
 }
 
+// UpdateSettingByKey store new setting
+func (h Handlers) UpdateSettingByKey(w http.ResponseWriter, r *http.Request) {
+	type body struct {
+		Value         string `json:"value"`
+		UpdatedBy     int    `json:"updatedBy"`
+		UpdateComment string `json:"updateComment"`
+	}
+
+	key, _ := mux.Vars(r)["key"]
+
+	var b body
+	err := json.NewDecoder(r.Body).Decode(&b)
+	if err != nil {
+		printDbError(w)
+		return
+	}
+
+	// TODO: Validate data – e.g. if all fields set
+
+	t := time.Now()
+
+	res, err := h.DB.Exec(
+		`UPDATE Settings
+			SET ItemValue = ?, UpdatedAt = ?, UpdatedBy = ?, UpdateComment = ?
+		 WHERE ItemKey = ?`,
+		b.Value,
+		t,
+		b.UpdatedBy,
+		b.UpdateComment,
+		key,
+	)
+
+	if err != nil {
+		fmt.Println(err)
+		printDbError(w)
+		return
+	}
+
+	rowsAffected, _ := res.RowsAffected()
+
+	type responseBody struct {
+		Status       string `json:"status"`
+		RowsAffected int    `json:"rowsAffected"`
+	}
+
+	printJSON(w, &responseBody{
+		Status:       "ok",
+		RowsAffected: int(rowsAffected),
+	})
+}
+
 // AddSetting store new setting
 func (h Handlers) AddSetting(w http.ResponseWriter, r *http.Request) {
-	type Setting struct {
+	type body struct {
 		Key       string `json:"key"`
 		Value     string `json:"value"`
 		CreatedBy int    `json:"createdBy"`
 	}
 
-	var setting Setting
-	err := json.NewDecoder(r.Body).Decode(&setting)
+	var b body
+	err := json.NewDecoder(r.Body).Decode(&b)
 	if err != nil {
 		printDbError(w)
 		return
@@ -486,9 +538,9 @@ func (h Handlers) AddSetting(w http.ResponseWriter, r *http.Request) {
 	res, err := h.DB.Exec(
 		`INSERT INTO Settings (ItemKey, ItemValue, CreatedBy)
 		 VALUES (?,?,?)`,
-		setting.Key,
-		setting.Value,
-		setting.CreatedBy,
+		b.Key,
+		b.Value,
+		b.CreatedBy,
 	)
 
 	if err != nil {
@@ -496,8 +548,9 @@ func (h Handlers) AddSetting(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	type Response struct {
-		ID int `json:"id"`
+	type responseBody struct {
+		Status string `json:"status"`
+		ID     int    `json:"id"`
 	}
 
 	id, err := res.LastInsertId()
@@ -507,8 +560,9 @@ func (h Handlers) AddSetting(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	printJSON(w, &Response{
-		ID: int(id),
+	printJSON(w, &responseBody{
+		Status: "ok",
+		ID:     int(id),
 	})
 }
 
