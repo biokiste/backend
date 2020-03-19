@@ -132,30 +132,6 @@ func GetRoutes(h *Handlers) Routes {
 			"/types/transaction",
 			h.GetTransactionTypes,
 		},
-		Route{
-			"GetSettings",
-			"GET",
-			"/settings",
-			h.GetSettings,
-		},
-		Route{
-			"GetSettingByKey",
-			"GET",
-			"/settings/{key}",
-			h.GetSettingByKey,
-		},
-		Route{
-			"UpdateSettingByKey",
-			"PATCH",
-			"/settings/{key}",
-			h.UpdateSettingByKey,
-		},
-		Route{
-			"AddSetting",
-			"POST",
-			"/settings",
-			h.AddSetting,
-		},
 		// Route{
 		// 	"SendMail",
 		// 	"GET",
