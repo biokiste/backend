@@ -375,19 +375,19 @@ func (h Handlers) GetTransactionTypes(w http.ResponseWriter, r *http.Request) {
 	printJSON(w, &types)
 }
 
+type setting struct {
+	ID            int    `json:"id"`
+	ItemKey       string `json:"key"`
+	ItemValue     string `json:"value"`
+	CreatedAt     string `json:"createdAt"`
+	CreatedBy     int    `json:"createdBy"`
+	UpdatedAt     string `json:"updatedAt,omitempty"`
+	UpdatedBy     int    `json:"updatedBy,omitempty"`
+	UpdateComment string `json:"updateComment,omitempty"`
+}
+
 // GetSettings get all setting
 func (h Handlers) GetSettings(w http.ResponseWriter, r *http.Request) {
-	type Setting struct {
-		ID            int    `json:"id"`
-		ItemKey       string `json:"key"`
-		ItemValue     string `json:"value"`
-		CreatedAt     string `json:"createdAt"`
-		CreatedBy     int    `json:"createdBy"`
-		UpdatedAt     string `json:"updatedAt,omitempty"`
-		UpdatedBy     int    `json:"updatedBy,omitempty"`
-		UpdateComment string `json:"updateComment,omitempty"`
-	}
-
 	results, err := h.DB.Query(`
 		SELECT 
 			ID,
@@ -406,32 +406,64 @@ func (h Handlers) GetSettings(w http.ResponseWriter, r *http.Request) {
 	}
 	defer results.Close()
 
-	var settings []Setting
+	var settings []setting
 
 	for results.Next() {
-		var setting Setting
+		var s setting
 		err = results.Scan(
-			&setting.ID,
-			&setting.ItemKey,
-			&setting.ItemValue,
-			&setting.CreatedAt,
-			&setting.CreatedBy,
-			&setting.UpdatedAt,
-			&setting.UpdatedBy,
-			&setting.UpdateComment,
+			&s.ID,
+			&s.ItemKey,
+			&s.ItemValue,
+			&s.CreatedAt,
+			&s.CreatedBy,
+			&s.UpdatedAt,
+			&s.UpdatedBy,
+			&s.UpdateComment,
 		)
 		if err != nil {
 			printDbError(w)
 			return
 		}
-		settings = append(settings, setting)
+		settings = append(settings, s)
 	}
 
 	if len(settings) == 0 {
-		settings = make([]Setting, 0)
+		settings = make([]setting, 0)
 	}
 
 	printJSON(w, &settings)
+}
+
+// GetSettingByKey get setting by key
+func (h Handlers) GetSettingByKey(w http.ResponseWriter, r *http.Request) {
+	key, _ := mux.Vars(r)["key"]
+	var s setting
+	if err := h.DB.QueryRow(`
+		SELECT 
+			ID,
+			ItemKey,
+			ItemValue,
+			CreatedAt,
+			CreatedBy,
+			COALESCE(UpdatedAt, '') AS UpdatedAt,
+			COALESCE(UpdatedBy, -1) AS UpdatedBy,
+			COALESCE(UpdateComment, '') AS UpdateComment
+		FROM Settings
+		WHERE ItemKey = ?`, key).Scan(
+		&s.ID,
+		&s.ItemKey,
+		&s.ItemValue,
+		&s.CreatedAt,
+		&s.CreatedBy,
+		&s.UpdatedAt,
+		&s.UpdatedBy,
+		&s.UpdateComment,
+	); err != nil {
+		fmt.Println(err)
+		printCustomError(w, nil, 404)
+		return
+	}
+	printJSON(w, &s)
 }
 
 // AddSetting store new setting
