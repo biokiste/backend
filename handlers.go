@@ -512,10 +512,7 @@ func (h Handlers) UpdateSettingByKey(w http.ResponseWriter, r *http.Request) {
 		RowsAffected int    `json:"rowsAffected"`
 	}
 
-	printJSON(w, &responseBody{
-		Status:       "ok",
-		RowsAffected: int(rowsAffected),
-	})
+	printJSON(w, &responseBody{"ok", int(rowsAffected)})
 }
 
 // AddSetting store new setting
@@ -560,10 +557,7 @@ func (h Handlers) AddSetting(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	printJSON(w, &responseBody{
-		Status: "ok",
-		ID:     int(id),
-	})
+	printJSON(w, &responseBody{"ok", int(id)})
 }
 
 // SendMail sends emails
