@@ -14,6 +14,7 @@ type RouterConfig struct {
 // APIRouter registers routes
 func APIRouter(config *RouterConfig) *mux.Router {
 	router := mux.NewRouter()
+	apiRouter := router.PathPrefix("/api").Subrouter()
 
 	// load routes from routes.go
 	for _, route := range GetRoutes(config.Handlers) {
@@ -22,7 +23,7 @@ func APIRouter(config *RouterConfig) *mux.Router {
 		handler = route.HandlerFunc
 		handler = Auth(Logger(handler, route.Name))
 
-		router.
+		apiRouter.
 			Methods(route.Method).
 			Path(route.Pattern).
 			Name(route.Name).
