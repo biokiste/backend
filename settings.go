@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/didi/gendry/scanner"
 	"github.com/gorilla/mux"
 )
 
@@ -72,23 +73,10 @@ func (h Handlers) getSettings(w http.ResponseWriter, r *http.Request) {
 
 	var rows []tableRow
 
-	for results.Next() {
-		var tr tableRow
-		err = results.Scan(
-			&tr.ID,
-			&tr.ItemKey,
-			&tr.ItemValue,
-			&tr.CreatedAt,
-			&tr.CreatedBy,
-			&tr.UpdatedAt,
-			&tr.UpdatedBy,
-			&tr.UpdateComment,
-		)
-		if err != nil {
-			printDbError(w)
-			return
-		}
-		rows = append(rows, tr)
+	err = scanner.Scan(results, &rows)
+	if err != nil {
+		printDbError(w)
+		return
 	}
 
 	if len(rows) == 0 {
