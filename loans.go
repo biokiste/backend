@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"time"
+	"strings"
 
 	"github.com/gorilla/mux"
 )
@@ -56,7 +56,7 @@ func (h *Handlers) getLoans(w http.ResponseWriter, r *http.Request) {
 			CreatedAt,
 			CreatedBy,
 			COALESCE(UpdatedAt, '') AS UpdatedAt,
-			COALESCE(UpdatedBy, -1) AS UpdatedBy,
+			COALESCE(UpdatedBy, 0) AS UpdatedBy,
 			COALESCE(UpdateComment, '') AS UpdateComment
 		FROM Loans
 	`)
@@ -98,11 +98,10 @@ func (h *Handlers) getLoans(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h Handlers) updateLoanWithID(w http.ResponseWriter, r *http.Request) {
-	// TODO: Make Amount, State and UserID optional
 	type body struct {
-		Amount        float32 `json:"amount"`
-		State         string  `json:"state"`
-		UserID        int     `json:"userId"`
+		Amount        float32 `json:"amount,omitempty"`
+		State         string  `json:"state,omitempty"`
+		UserID        int     `json:"userId,omitempty"`
 		UpdatedBy     int     `json:"updatedBy"`
 		UpdateComment string  `json:"updateComment"`
 	}
@@ -112,30 +111,41 @@ func (h Handlers) updateLoanWithID(w http.ResponseWriter, r *http.Request) {
 	var b body
 	err := json.NewDecoder(r.Body).Decode(&b)
 	if err != nil {
-		printDbError(w)
+		fmt.Println(err)
+		printInternalError(w)
 		return
 	}
 
-	// TODO: Validate data – e.g. if all fields set
+	var str strings.Builder
 
-	date := time.Now()
+	fmt.Fprint(&str, "UPDATE Loans SET ")
+	if b.Amount != 0 {
+		fmt.Fprintf(&str, "Amount = %f, ", b.Amount)
+	}
+	if b.State != "" {
+		fmt.Fprintf(&str, `State = "%s", `, b.State)
+	}
+	if b.UserID != 0 {
+		fmt.Fprintf(&str, "UserID = %d, ", b.UserID)
+	}
 
-	result, err := h.DB.Exec(
-		`UPDATE Loans
-			SET Amount = ?, State = ?, UserID = ?, UpdatedAt = ?, UpdatedBy = ?, UpdateComment = ?
-		 WHERE ID = ?`,
-		b.Amount,
-		b.State,
-		b.UserID,
-		date,
-		b.UpdatedBy,
-		b.UpdateComment,
-		id,
-	)
+	if b.UpdatedBy == 0 || b.UpdateComment == "" {
+		code := 400
+		msg := "Some required fields are missing!"
+		fmt.Println(msg)
+		printCustomError(w, ErrorMessage{code, msg}, code)
+		return
+	}
+
+	fmt.Fprintf(&str, `UpdatedAt = CURRENT_TIMESTAMP(), UpdatedBy = %d, UpdateComment = "%s" WHERE ID = %s`, b.UpdatedBy, b.UpdateComment, id)
+
+	query := str.String()
+
+	result, err := h.DB.Exec(query)
 
 	if err != nil {
 		fmt.Println(err)
-		printDbError(w)
+		printInternalError(w)
 		return
 	}
 
