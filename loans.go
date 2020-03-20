@@ -47,19 +47,29 @@ type loan struct {
 }
 
 func (h *Handlers) getLoans(w http.ResponseWriter, r *http.Request) {
-	results, err := h.DB.Query(`
-		SELECT
-			ID,
-			Amount,
-			State,
-			UserID,
-			CreatedAt,
-			CreatedBy,
-			COALESCE(UpdatedAt, '') AS UpdatedAt,
-			COALESCE(UpdatedBy, 0) AS UpdatedBy,
-			COALESCE(UpdateComment, '') AS UpdateComment
-		FROM Loans
-	`)
+	params := r.URL.Query()
+	state := params.Get("state")
+	userID := params.Get("user_id")
+
+	var str strings.Builder
+	fmt.Fprint(&str, `SELECT ID, Amount, State, UserID, CreatedAt, CreatedBy, COALESCE(UpdatedAt, '') AS UpdatedAt, COALESCE(UpdatedBy, 0) AS UpdatedBy, COALESCE(UpdateComment, '') AS UpdateComment FROM Loans`)
+
+	if state != "" || userID != "" {
+		fmt.Fprint(&str, " WHERE ")
+	}
+
+	if state != "" && userID != "" {
+		fmt.Fprintf(&str, `State = "%s" AND UserID = %s`, state, userID)
+	} else if state != "" {
+		fmt.Fprintf(&str, `State = "%s"`, state)
+	} else if userID != "" {
+		fmt.Fprintf(&str, `UserID = %s`, userID)
+	}
+
+	query := str.String()
+	fmt.Println(query)
+
+	results, err := h.DB.Query(query)
 	if err != nil {
 		fmt.Println(err)
 		printDbError(w)
@@ -175,7 +185,13 @@ func (h Handlers) addLoan(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// TODO: Validate data – e.g. if all fields set
+	if b.Amount == 0 || b.State == "" || b.UserID == 0 || b.CreatedBy == 0 {
+		code := 400
+		msg := "Some required fields are missing!"
+		fmt.Println(msg)
+		printCustomError(w, ErrorMessage{code, msg}, code)
+		return
+	}
 
 	result, err := h.DB.Exec(
 		`INSERT INTO Loans (Amount, State, UserID, CreatedBy)
