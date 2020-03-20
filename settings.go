@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"time"
 
 	"github.com/gorilla/mux"
 )
@@ -60,12 +59,13 @@ func (h Handlers) getSettings(w http.ResponseWriter, r *http.Request) {
 			CreatedAt,
 			CreatedBy,
 			COALESCE(UpdatedAt, '') AS UpdatedAt,
-			COALESCE(UpdatedBy, -1) AS UpdatedBy,
+			COALESCE(UpdatedBy, 0) AS UpdatedBy,
 			COALESCE(UpdateComment, '') AS UpdateComment
 		FROM Settings
 	`)
 	if err != nil {
-		printDbError(w)
+		fmt.Println(err)
+		printInternalError(w)
 		return
 	}
 	defer results.Close()
@@ -85,7 +85,8 @@ func (h Handlers) getSettings(w http.ResponseWriter, r *http.Request) {
 			&s.UpdateComment,
 		)
 		if err != nil {
-			printDbError(w)
+			fmt.Println(err)
+			printInternalError(w)
 			return
 		}
 		settings = append(settings, s)
@@ -110,7 +111,7 @@ func (h Handlers) getSettingByKey(w http.ResponseWriter, r *http.Request) {
 			CreatedAt,
 			CreatedBy,
 			COALESCE(UpdatedAt, '') AS UpdatedAt,
-			COALESCE(UpdatedBy, -1) AS UpdatedBy,
+			COALESCE(UpdatedBy, 0) AS UpdatedBy,
 			COALESCE(UpdateComment, '') AS UpdateComment
 		FROM Settings
 		WHERE ItemKey = ?`, key).Scan(
@@ -124,7 +125,7 @@ func (h Handlers) getSettingByKey(w http.ResponseWriter, r *http.Request) {
 		&s.UpdateComment,
 	); err != nil {
 		fmt.Println(err)
-		printCustomError(w, nil, 404)
+		printInternalError(w)
 		return
 	}
 	printJSON(w, &s)
@@ -142,28 +143,28 @@ func (h Handlers) updateSettingWithKey(w http.ResponseWriter, r *http.Request) {
 	var b body
 	err := json.NewDecoder(r.Body).Decode(&b)
 	if err != nil {
-		printDbError(w)
+		fmt.Println(err)
+		printInternalError(w)
 		return
 	}
 
-	// TODO: Validate data – e.g. if all fields set
+	if b.Value == "" || b.UpdatedBy == 0 || b.UpdateComment == "" {
+		code := 400
+		msg := "Some required fields are missing!"
+		fmt.Println(msg)
+		printCustomError(w, ErrorMessage{code, msg}, code)
+		return
+	}
 
-	date := time.Now()
-
-	result, err := h.DB.Exec(
-		`UPDATE Settings
-			SET ItemValue = ?, UpdatedAt = ?, UpdatedBy = ?, UpdateComment = ?
-		 WHERE ItemKey = ?`,
-		b.Value,
-		date,
-		b.UpdatedBy,
-		b.UpdateComment,
-		key,
-	)
+	result, err := h.DB.Exec(`
+		UPDATE Settings
+			SET ItemValue = ?, UpdatedAt = CURRENT_TIMESTAMP(), UpdatedBy = ?, UpdateComment = ?
+		WHERE ItemKey = ?
+	`, b.Value, b.UpdatedBy, b.UpdateComment, key)
 
 	if err != nil {
 		fmt.Println(err)
-		printDbError(w)
+		printInternalError(w)
 		return
 	}
 
@@ -187,11 +188,18 @@ func (h Handlers) addSetting(w http.ResponseWriter, r *http.Request) {
 	var b body
 	err := json.NewDecoder(r.Body).Decode(&b)
 	if err != nil {
-		printDbError(w)
+		fmt.Println(err)
+		printInternalError(w)
 		return
 	}
 
-	// TODO: Validate data – e.g. if all fields set
+	if b.Key == "" || b.Value == "" || b.CreatedBy == 0 {
+		code := 400
+		msg := "Some required fields are missing!"
+		fmt.Println(msg)
+		printCustomError(w, ErrorMessage{code, msg}, code)
+		return
+	}
 
 	result, err := h.DB.Exec(
 		`INSERT INTO Settings (ItemKey, ItemValue, CreatedBy)
@@ -202,7 +210,8 @@ func (h Handlers) addSetting(w http.ResponseWriter, r *http.Request) {
 	)
 
 	if err != nil {
-		printDbError(w)
+		fmt.Println(err)
+		printInternalError(w)
 		return
 	}
 
@@ -214,7 +223,8 @@ func (h Handlers) addSetting(w http.ResponseWriter, r *http.Request) {
 	id, err := result.LastInsertId()
 
 	if err != nil {
-		printDbError(w)
+		fmt.Println(err)
+		printInternalError(w)
 		return
 	}
 
