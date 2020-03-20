@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/didi/gendry/scanner"
 	"github.com/gorilla/mux"
 )
 
@@ -41,7 +40,7 @@ func GetSettingsRoutes(h *Handlers) []Route {
 	return routes
 }
 
-type tableRow struct {
+type setting struct {
 	ID            int    `json:"id"`
 	ItemKey       string `json:"key"`
 	ItemValue     string `json:"value"`
@@ -71,25 +70,38 @@ func (h Handlers) getSettings(w http.ResponseWriter, r *http.Request) {
 	}
 	defer results.Close()
 
-	var rows []tableRow
+	var settings []setting
 
-	err = scanner.Scan(results, &rows)
-	if err != nil {
-		printDbError(w)
-		return
+	for results.Next() {
+		var s setting
+		err = results.Scan(
+			&s.ID,
+			&s.ItemKey,
+			&s.ItemValue,
+			&s.CreatedAt,
+			&s.CreatedBy,
+			&s.UpdatedAt,
+			&s.UpdatedBy,
+			&s.UpdateComment,
+		)
+		if err != nil {
+			printDbError(w)
+			return
+		}
+		settings = append(settings, s)
 	}
 
-	if len(rows) == 0 {
-		rows = make([]tableRow, 0)
+	if len(settings) == 0 {
+		settings = make([]setting, 0)
 	}
 
-	printJSON(w, &rows)
+	printJSON(w, &settings)
 }
 
 func (h Handlers) getSettingByKey(w http.ResponseWriter, r *http.Request) {
 	key, _ := mux.Vars(r)["key"]
 
-	var tr tableRow
+	var s setting
 	if err := h.DB.QueryRow(`
 		SELECT 
 			ID,
@@ -102,20 +114,20 @@ func (h Handlers) getSettingByKey(w http.ResponseWriter, r *http.Request) {
 			COALESCE(UpdateComment, '') AS UpdateComment
 		FROM Settings
 		WHERE ItemKey = ?`, key).Scan(
-		&tr.ID,
-		&tr.ItemKey,
-		&tr.ItemValue,
-		&tr.CreatedAt,
-		&tr.CreatedBy,
-		&tr.UpdatedAt,
-		&tr.UpdatedBy,
-		&tr.UpdateComment,
+		&s.ID,
+		&s.ItemKey,
+		&s.ItemValue,
+		&s.CreatedAt,
+		&s.CreatedBy,
+		&s.UpdatedAt,
+		&s.UpdatedBy,
+		&s.UpdateComment,
 	); err != nil {
 		fmt.Println(err)
 		printCustomError(w, nil, 404)
 		return
 	}
-	printJSON(w, &tr)
+	printJSON(w, &s)
 }
 
 func (h Handlers) updateSettingWithKey(w http.ResponseWriter, r *http.Request) {
