@@ -67,7 +67,6 @@ func (h *Handlers) getLoans(w http.ResponseWriter, r *http.Request) {
 	}
 
 	query := str.String()
-	fmt.Println(query)
 
 	results, err := h.DB.Query(query)
 	if err != nil {
