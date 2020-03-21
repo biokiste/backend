@@ -42,9 +42,15 @@ type transaction struct {
 
 func (h *Handlers) getTransactions(w http.ResponseWriter, r *http.Request) {
 	// 	GET /transactions/?types={type ?string}&state={state ?string}&user_id={userId ?int}&createdAt={createdAt ?string}
+	params := r.URL.Query()
+	t := params.Get("type")
 
 	var str strings.Builder
 	fmt.Fprint(&str, `SELECT ID, Amount, Type, State, UserID, CreatedAt, CreatedBy, COALESCE(UpdatedAt, '') AS UpdatedAt, COALESCE(UpdatedBy, 0) AS UpdatedBy, COALESCE(UpdateComment, '') AS UpdateComment FROM Transactions`)
+
+	if t != "" {
+		fmt.Fprintf(&str, ` WHERE Type = "%s"`, t)
+	}
 
 	query := str.String()
 
