@@ -72,7 +72,7 @@ func (h *Handlers) getLoans(w http.ResponseWriter, r *http.Request) {
 	results, err := h.DB.Query(query)
 	if err != nil {
 		fmt.Println(err)
-		printDbError(w)
+		printInternalError(w)
 		return
 	}
 	defer results.Close()
@@ -94,7 +94,7 @@ func (h *Handlers) getLoans(w http.ResponseWriter, r *http.Request) {
 		)
 		if err != nil {
 			fmt.Println(err)
-			printDbError(w)
+			printInternalError(w)
 			return
 		}
 		loans = append(loans, l)
@@ -181,7 +181,7 @@ func (h Handlers) addLoan(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&b)
 	if err != nil {
 		fmt.Println(err)
-		printDbError(w)
+		printInternalError(w)
 		return
 	}
 
@@ -204,7 +204,7 @@ func (h Handlers) addLoan(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		fmt.Println(err)
-		printDbError(w)
+		printInternalError(w)
 		return
 	}
 
@@ -216,7 +216,8 @@ func (h Handlers) addLoan(w http.ResponseWriter, r *http.Request) {
 	id, err := result.LastInsertId()
 
 	if err != nil {
-		printDbError(w)
+		fmt.Println(err)
+		printInternalError(w)
 		return
 	}
 
