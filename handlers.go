@@ -344,15 +344,15 @@ func (h Handlers) GetGroupTypes(w http.ResponseWriter, r *http.Request) {
 	printJSON(w, &GroupTypesRequest{GroupTypes: groupTypes})
 }
 
-// GetGroups returns all groups
-func (h Handlers) GetGroups(w http.ResponseWriter, r *http.Request) {
-	groups, err := h.GetGroupsWithUsers()
-	if err != nil {
-		printDbError(w)
-		return
-	}
-	printJSON(w, &GroupRequest{Groups: groups})
-}
+// // GetGroups returns all groups
+// func (h Handlers) GetGroups(w http.ResponseWriter, r *http.Request) {
+// 	groups, err := h.GetGroupsWithUsers()
+// 	if err != nil {
+// 		printDbError(w)
+// 		return
+// 	}
+// 	printJSON(w, &GroupRequest{Groups: groups})
+// }
 
 // GetUserStates returns user states
 func (h Handlers) GetUserStates(w http.ResponseWriter, r *http.Request) {

@@ -49,6 +49,17 @@ func APIRouter(config *RouterConfig) *mux.Router {
 			Handler(h)
 	}
 
+	for _, r := range GetGroupsRoutes(config.Handlers) {
+		var h http.Handler
+		h = r.HandlerFunc
+		h = Auth(Logger(h, r.Name))
+		subRouter.
+			Methods(r.Method).
+			Path(r.Pattern).
+			Name(r.Name).
+			Handler(h)
+	}
+
 	// load routes from routes.go
 	for _, route := range GetRoutes(config.Handlers) {
 		var handler http.Handler

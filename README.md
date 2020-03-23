@@ -78,6 +78,28 @@ ALTER TABLE `Transactions`
   MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT;
 ```
 
+### Groups
+
+```sql
+CREATE TABLE `Groups` (
+  `ID` int(11) NOT NULL,
+  `GroupKey` varchar(255) NOT NULL,
+  `Email` varchar(255) NOT NULL,
+  `CreatedAt` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `CreatedBy` int(11) NOT NULL,
+  `UpdatedAt` datetime DEFAULT NULL,
+  `UpdatedBy` int(11) DEFAULT NULL,
+  `UpdateComment` varchar(255) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+ALTER TABLE `Groups`
+  ADD PRIMARY KEY (`ID`),
+  ADD UNIQUE KEY `GroupKey` (`GroupKey`);
+
+ALTER TABLE `Groups`
+  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT;
+```
+
 ### api
 
 Create user:

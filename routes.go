@@ -36,12 +36,6 @@ func GetRoutes(h *Handlers) Routes {
 			"/users/lastactive",
 			h.LastActiveUsers,
 		},
-		// Route{
-		// 	"GetUserById",
-		// 	"GET",
-		// 	"/api/users/{id}",
-		// 	h.GetUser,
-		// },
 		Route{
 			"GetUserByEmail",
 			"GET",
@@ -65,48 +59,6 @@ func GetRoutes(h *Handlers) Routes {
 			"PATCH",
 			"/user",
 			h.UpdateUser,
-		},
-		// Route{
-		// 	"GetTransactions",
-		// 	"GET",
-		// 	"/transactions",
-		// 	h.GetTransactions,
-		// },
-		// Route{
-		// 	"GetTransactionsByUser",
-		// 	"GET",
-		// 	"/transactions/user/{id}",
-		// 	h.GetTransactionsByUser,
-		// },
-		// Route{
-		// 	"AddTransaction",
-		// 	"POST",
-		// 	"/transaction",
-		// 	h.AddTransaction,
-		// },
-		// Route{
-		// 	"UpdatePayment",
-		// 	"PATCH",
-		// 	"/transactions/payments",
-		// 	h.UpdatePayment,
-		// },
-		// Route{
-		// 	"GetOpenPayments",
-		// 	"GET",
-		// 	"/transactions/payments/open",
-		// 	h.GetOpenPayments,
-		// },
-		Route{
-			"GetGroupTypes",
-			"GET",
-			"/group/types",
-			h.GetGroupTypes,
-		},
-		Route{
-			"GetGroups",
-			"GET",
-			"/groups",
-			h.GetGroups,
 		},
 		Route{
 			"GetUserStates",
