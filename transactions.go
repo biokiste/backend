@@ -44,12 +44,40 @@ func (h *Handlers) getTransactions(w http.ResponseWriter, r *http.Request) {
 	// 	GET /transactions/?types={type ?string}&state={state ?string}&user_id={userId ?int}&createdAt={createdAt ?string}
 	params := r.URL.Query()
 	t := params.Get("type")
+	s := params.Get("state")
+	u := params.Get("user_id")
+	c := params.Get("created_at")
 
 	var str strings.Builder
 	fmt.Fprint(&str, `SELECT ID, Amount, Type, State, UserID, CreatedAt, CreatedBy, COALESCE(UpdatedAt, '') AS UpdatedAt, COALESCE(UpdatedBy, 0) AS UpdatedBy, COALESCE(UpdateComment, '') AS UpdateComment FROM Transactions`)
 
+	if t != "" || s != "" || u != "" || c != "" {
+		fmt.Fprint(&str, " WHERE ")
+	}
+
 	if t != "" {
-		fmt.Fprintf(&str, ` WHERE Type = "%s"`, t)
+		fmt.Fprintf(&str, `Type = "%s"`, t)
+		if s != "" || u != "" || c != "" {
+			fmt.Fprint(&str, " AND ")
+		}
+	}
+
+	if s != "" {
+		fmt.Fprintf(&str, `State = "%s"`, s)
+		if u != "" || c != "" {
+			fmt.Fprint(&str, " AND ")
+		}
+	}
+
+	if u != "" {
+		fmt.Fprintf(&str, `UserID = %s`, u)
+		if c != "" {
+			fmt.Fprint(&str, " AND ")
+		}
+	}
+
+	if c != "" {
+		fmt.Fprintf(&str, `CreatedAt >= "%s" AND CreatedAt < DATE_ADD("%s", INTERVAL 1 DAY)`, c, c)
 	}
 
 	query := str.String()
