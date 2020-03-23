@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+
+	"github.com/gorilla/mux"
 )
 
 // GetTransactionsRoutes get all routes of path /transactions
@@ -21,6 +23,12 @@ func GetTransactionsRoutes(h *Handlers) []Route {
 			"POST",
 			"/transactions",
 			h.addTransaction,
+		},
+		{
+			"update transaction",
+			"PATCH",
+			"/transactions/{id}",
+			h.updateTransactionWithID,
 		},
 	}
 
@@ -41,7 +49,6 @@ type transaction struct {
 }
 
 func (h *Handlers) getTransactions(w http.ResponseWriter, r *http.Request) {
-	// 	GET /transactions/?types={type ?string}&state={state ?string}&user_id={userId ?int}&createdAt={createdAt ?string}
 	params := r.URL.Query()
 	t := params.Get("type")
 	s := params.Get("state")
@@ -120,6 +127,72 @@ func (h *Handlers) getTransactions(w http.ResponseWriter, r *http.Request) {
 
 	printJSON(w, &transactions)
 
+}
+
+func (h *Handlers) updateTransactionWithID(w http.ResponseWriter, r *http.Request) {
+	type body struct {
+		Amount        float32 `json:"amount,omitempty"`
+		Type          string  `json:"type,omitempty"`
+		State         string  `json:"state,omitempty"`
+		UserID        int     `json:"userId,omitempty"`
+		UpdatedBy     int     `json:"updatedBy"`
+		UpdateComment string  `json:"updateComment"`
+	}
+
+	var b body
+	err := json.NewDecoder(r.Body).Decode(&b)
+	if err != nil {
+		fmt.Println(err)
+		printInternalError(w)
+		return
+	}
+
+	id, _ := mux.Vars(r)["id"]
+
+	var str strings.Builder
+
+	fmt.Fprint(&str, "UPDATE Transactions SET ")
+	if b.Amount != 0 {
+		fmt.Fprintf(&str, "Amount = %f, ", b.Amount)
+	}
+	if b.Type != "" {
+		fmt.Fprintf(&str, `Type = "%s", `, b.Type)
+	}
+	if b.State != "" {
+		fmt.Fprintf(&str, `State = "%s", `, b.State)
+	}
+	if b.UserID != 0 {
+		fmt.Fprintf(&str, "UserID = %d, ", b.UserID)
+	}
+
+	if b.UpdatedBy == 0 || b.UpdateComment == "" {
+		code := 400
+		msg := "Some required fields are missing!"
+		fmt.Println(msg)
+		printCustomError(w, ErrorMessage{code, msg}, code)
+		return
+	}
+
+	fmt.Fprintf(&str, `UpdatedAt = CURRENT_TIMESTAMP(), UpdatedBy = %d, UpdateComment = "%s" WHERE ID = %s`, b.UpdatedBy, b.UpdateComment, id)
+
+	query := str.String()
+
+	result, err := h.DB.Exec(query)
+
+	if err != nil {
+		fmt.Println(err)
+		printInternalError(w)
+		return
+	}
+
+	rowsAffected, _ := result.RowsAffected()
+
+	type resBody struct {
+		Status       string `json:"status"`
+		RowsAffected int    `json:"rowsAffected"`
+	}
+
+	printJSON(w, &resBody{"ok", int(rowsAffected)})
 }
 
 func (h *Handlers) addTransaction(w http.ResponseWriter, r *http.Request) {
