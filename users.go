@@ -18,6 +18,12 @@ func GetUsersRoutes(h *Handlers) []Route {
 			"/users",
 			h.addUser,
 		},
+		{
+			"add user",
+			"POST",
+			"/user/auth/create",
+			h.addUser,
+		},
 	}
 
 	return routes
@@ -82,7 +88,7 @@ func (h *Handlers) addUser(w http.ResponseWriter, r *http.Request) {
 	result, err := h.DB.Exec(query)
 	if err != nil {
 		fmt.Println(err)
-		printInternalError(w)
+		printError(w, err)
 		return
 	}
 	id, _ := result.LastInsertId()
