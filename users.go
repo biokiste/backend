@@ -18,12 +18,6 @@ func GetUsersRoutes(h *Handlers) []Route {
 			"/users",
 			h.addUser,
 		},
-		{
-			"add user",
-			"POST",
-			"/user/auth/create",
-			h.addUser,
-		},
 	}
 
 	return routes
