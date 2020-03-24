@@ -236,6 +236,9 @@ func (h *Handlers) addTransaction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	query := fmt.Sprintf(`UPDATE Users SET LastActivityAt = CURRENT_TIMESTAMP() WHERE ID = %d`, b.UserID)
+	h.DB.Query(query)
+
 	type resBody struct {
 		Status       string `json:"status"`
 		LastInsertId int    `json:"id"`
