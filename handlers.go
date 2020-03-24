@@ -61,24 +61,24 @@ func (h Handlers) UpdateDoorCode(w http.ResponseWriter, r *http.Request) {
 }
 
 // ListUsers delivers user data
-func (h Handlers) ListUsers(w http.ResponseWriter, r *http.Request) {
-	users, err := h.GetAllUser()
-	if err != nil {
-		printDbError(w)
-	} else {
-		printJSON(w, &UsersResponse{Users: users})
-	}
-}
+// func (h Handlers) ListUsers(w http.ResponseWriter, r *http.Request) {
+// 	users, err := h.GetAllUser()
+// 	if err != nil {
+// 		printDbError(w)
+// 	} else {
+// 		printJSON(w, &UsersResponse{Users: users})
+// 	}
+// }
 
 // LastActiveUsers delivers last ten active users
-func (h Handlers) LastActiveUsers(w http.ResponseWriter, r *http.Request) {
-	users, err := h.GetLastActiveUsers()
-	if err != nil {
-		printDbError(w)
-	} else {
-		printJSON(w, &UsersResponse{Users: users})
-	}
-}
+// func (h Handlers) LastActiveUsers(w http.ResponseWriter, r *http.Request) {
+// 	users, err := h.GetLastActiveUsers()
+// 	if err != nil {
+// 		printDbError(w)
+// 	} else {
+// 		printJSON(w, &UsersResponse{Users: users})
+// 	}
+// }
 
 // GetUser delivers user for id
 // func (h Handlers) GetUser(w http.ResponseWriter, r *http.Request) {
@@ -92,15 +92,15 @@ func (h Handlers) LastActiveUsers(w http.ResponseWriter, r *http.Request) {
 // }
 
 // GetUserByEmail delivers user for email
-func (h Handlers) GetUserByEmail(w http.ResponseWriter, r *http.Request) {
-	email, _ := mux.Vars(r)["email"]
-	user, err := h.GetSingleUserByIEmail(email)
-	if err != nil {
-		printDbError(w)
-	} else {
-		printJSON(w, &UserResponse{User: user})
-	}
-}
+// func (h Handlers) GetUserByEmail(w http.ResponseWriter, r *http.Request) {
+// 	email, _ := mux.Vars(r)["email"]
+// 	user, err := h.GetSingleUserByIEmail(email)
+// 	if err != nil {
+// 		printDbError(w)
+// 	} else {
+// 		printJSON(w, &UserResponse{User: user})
+// 	}
+// }
 
 // GetAuth0User delivers auth0 user data
 func (h Handlers) GetAuth0User(w http.ResponseWriter, r *http.Request) {
@@ -150,21 +150,21 @@ func (h Handlers) GetAuth0User(w http.ResponseWriter, r *http.Request) {
 // }
 
 // UpdateUser updates user
-func (h Handlers) UpdateUser(w http.ResponseWriter, r *http.Request) {
-	var user User
-	err := json.NewDecoder(r.Body).Decode(&user)
-	if err != nil {
-		printError(w, err)
-		return
-	}
+// func (h Handlers) UpdateUser(w http.ResponseWriter, r *http.Request) {
+// 	var user User
+// 	err := json.NewDecoder(r.Body).Decode(&user)
+// 	if err != nil {
+// 		printError(w, err)
+// 		return
+// 	}
 
-	err = h.UpdateUserData(user)
-	if err != nil {
-		printError(w, err.Error)
-		return
-	}
-	printSuccess(w)
-}
+// 	err = h.UpdateUserData(user)
+// 	if err != nil {
+// 		printError(w, err.Error)
+// 		return
+// 	}
+// 	printSuccess(w)
+// }
 
 // GetTransactions delivers all payments
 func (h Handlers) GetTransactions(w http.ResponseWriter, r *http.Request) {

@@ -26,40 +26,6 @@ type UserResponse struct {
 // 	LastLogin  string `json:"last_login,omitempty"`
 // }
 
-// User holds properties
-type User struct {
-	ID            int     `json:"id"`
-	UserID        string  `json:"user_id"`
-	Username      string  `json:"username,omitempty"`
-	Email         string  `json:"email,omitempty"`
-	Lastname      string  `json:"lastname,omitempty"`
-	Firstname     string  `json:"firstname,omitempty"`
-	Mobile        string  `json:"mobile,omitempty"`
-	NeedSMS       int     `json:"need_sms,omitempty"`
-	Phone         string  `json:"phone,omitempty"`
-	Street        string  `json:"street,omitempty"`
-	ZIP           string  `json:"zip,omitempty"`
-	City          string  `json:"city,omitempty"`
-	DateOfBirth   string  `json:"date_of_birth,omitempty"`
-	DateOfEntry   string  `json:"date_of_entry,omitempty"`
-	DateOfExit    string  `json:"date_of_exit,omitempty"`
-	State         int     `json:"state,omitempty"`
-	Credit        float32 `json:"credit,omitempty"`
-	CreditDate    string  `json:"credit_date,omitempty"`
-	CreditComment string  `json:"credit_comment,omitempty"`
-	IBAN          string  `json:"iban,omitempty"`
-	BIC           string  `json:"bic,omitempty"`
-	SEPA          string  `json:"sepa,omitempty"`
-	RememberToken string  `json:"remember_token,omitempty"`
-	Additionals   string  `json:"additionals,omitempty"`
-	Comment       string  `json:"comment,omitempty"`
-	GroupComment  string  `json:"group_comment,omitempty"`
-	CreatedAt     string  `json:"created_at,omitempty"`
-	UpdatedAt     string  `json:"updated_at,omitempty"`
-	LastLogin     string  `json:"last_login,omitempty"`
-	Password      string  `json:"password,omitempty"`
-}
-
 // TransactionResponse JSON API Spec Wrapper
 type TransactionResponse struct {
 	Transactions []Transaction `json:"data"`
