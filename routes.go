@@ -42,12 +42,12 @@ func GetRoutes(h *Handlers) Routes {
 			"/users/{email}",
 			h.GetUserByEmail,
 		},
-		Route{
-			"CreateAuth0User",
-			"POST",
-			"/user/auth/create",
-			h.CreateUser,
-		},
+		// Route{
+		// 	"CreateAuth0User",
+		// 	"POST",
+		// 	"/user/auth/create",
+		// 	h.CreateUser,
+		// },
 		Route{
 			"GetAuth0User",
 			"GET",

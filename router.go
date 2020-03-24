@@ -16,40 +16,29 @@ func APIRouter(config *RouterConfig) *mux.Router {
 	router := mux.NewRouter()
 	subRouter := router.PathPrefix("/api").Subrouter()
 
+	var routes []Route
+
 	for _, r := range GetSettingsRoutes(config.Handlers) {
-		var h http.Handler
-		h = r.HandlerFunc
-		h = Auth(Logger(h, r.Name))
-		subRouter.
-			Methods(r.Method).
-			Path(r.Pattern).
-			Name(r.Name).
-			Handler(h)
+		routes = append(routes, r)
 	}
 
 	for _, r := range GetLoansRoutes(config.Handlers) {
-		var h http.Handler
-		h = r.HandlerFunc
-		h = Auth(Logger(h, r.Name))
-		subRouter.
-			Methods(r.Method).
-			Path(r.Pattern).
-			Name(r.Name).
-			Handler(h)
+		routes = append(routes, r)
 	}
 
 	for _, r := range GetTransactionsRoutes(config.Handlers) {
-		var h http.Handler
-		h = r.HandlerFunc
-		h = Auth(Logger(h, r.Name))
-		subRouter.
-			Methods(r.Method).
-			Path(r.Pattern).
-			Name(r.Name).
-			Handler(h)
+		routes = append(routes, r)
 	}
 
 	for _, r := range GetGroupsRoutes(config.Handlers) {
+		routes = append(routes, r)
+	}
+
+	for _, r := range GetUsersRoutes(config.Handlers) {
+		routes = append(routes, r)
+	}
+
+	for _, r := range routes {
 		var h http.Handler
 		h = r.HandlerFunc
 		h = Auth(Logger(h, r.Name))

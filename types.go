@@ -11,20 +11,20 @@ type UserResponse struct {
 }
 
 // Auth0Bearer represents token object
-type Auth0Bearer struct {
-	AccessToken string `json:"access_token"`
-	ExpiresIn   int    `json:"expires_in"`
-	TokenType   string `json:"token_type"`
-}
+// type Auth0Bearer struct {
+// 	AccessToken string `json:"access_token"`
+// 	ExpiresIn   int    `json:"expires_in"`
+// 	TokenType   string `json:"token_type"`
+// }
 
 // Auth0User represents Auth0 User data
-type Auth0User struct {
-	Connection string `json:"connection"`
-	UserID     string `json:"user_id,omitempty"`
-	Email      string `json:"email"`
-	Password   string `json:"password,omitempty"`
-	LastLogin  string `json:"last_login,omitempty"`
-}
+// type Auth0User struct {
+// 	Connection string `json:"connection"`
+// 	UserID     string `json:"user_id,omitempty"`
+// 	Email      string `json:"email"`
+// 	Password   string `json:"password,omitempty"`
+// 	LastLogin  string `json:"last_login,omitempty"`
+// }
 
 // User holds properties
 type User struct {

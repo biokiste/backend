@@ -100,6 +100,40 @@ ALTER TABLE `Groups`
   MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT;
 ```
 
+### Users
+
+```sql
+CREATE TABLE `Users` (
+  `ID` int(11) NOT NULL,
+  `State` varchar(255) NOT NULL,
+  `FirstName` varchar(255) NOT NULL,
+  `LastName` varchar(255) NOT NULL,
+  `Email` varchar(255) NOT NULL,
+  `Phone` varchar(255) NOT NULL,
+  `Street` varchar(255) NOT NULL,
+  `StreetNumber` varchar(255) NOT NULL,
+  `Zip` varchar(255) NOT NULL,
+  `Country` varchar(255) NOT NULL,
+  `Birthday` date NOT NULL,
+  `EntranceDate` date NOT NULL,
+  `LeavingDate` date DEFAULT NULL,
+  `AdditionalInfos` varchar(255) DEFAULT NULL,
+  `LastActivityAt` datetime DEFAULT NULL,
+  `CreatedAt` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `CreatedBy` int(11) NOT NULL,
+  `UpdatedAt` datetime DEFAULT NULL,
+  `UpdatedBy` int(11) DEFAULT NULL,
+  `UpdateComment` varchar(255) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+ALTER TABLE `Users`
+  ADD PRIMARY KEY (`ID`),
+  ADD UNIQUE KEY `Email` (`Email`);
+
+ALTER TABLE `Users`
+  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT;
+```
+
 ### api
 
 Create user:

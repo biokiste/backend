@@ -115,39 +115,39 @@ func (h Handlers) GetAuth0User(w http.ResponseWriter, r *http.Request) {
 }
 
 // CreateUser creates Auth0 user and user in app database
-func (h Handlers) CreateUser(w http.ResponseWriter, r *http.Request) {
-	var user User
-	err := json.NewDecoder(r.Body).Decode(&user)
-	if err != nil {
-		printDbError(w)
-		return
-	}
+// func (h Handlers) CreateUser(w http.ResponseWriter, r *http.Request) {
+// 	var user User
+// 	err := json.NewDecoder(r.Body).Decode(&user)
+// 	if err != nil {
+// 		printDbError(w)
+// 		return
+// 	}
 
-	// first create auth0 user
-	auth0User := Auth0User{
-		UserID:     user.UserID,
-		Password:   user.Password,
-		Email:      user.Email,
-		Connection: "Username-Password-Authentication",
-	}
-	statusCode, err := h.CreateAuth0User(auth0User)
+// 	// first create auth0 user
+// 	auth0User := Auth0User{
+// 		UserID:     user.UserID,
+// 		Password:   user.Password,
+// 		Email:      user.Email,
+// 		Connection: "Username-Password-Authentication",
+// 	}
+// 	statusCode, err := h.CreateAuth0User(auth0User)
 
-	if statusCode != 201 {
-		printCustomError(w, err.Error(), statusCode)
-		return
-	}
+// 	if statusCode != 201 {
+// 		printCustomError(w, err.Error(), statusCode)
+// 		return
+// 	}
 
-	// then create user in app db
-	id, err := h.CreateUserData(user)
-	if err != nil {
-		printError(w, err)
-		return
-	}
+// 	// then create user in app db
+// 	id, err := h.CreateUserData(user)
+// 	if err != nil {
+// 		printError(w, err)
+// 		return
+// 	}
 
-	printJSON(w, &User{
-		ID: int(id),
-	})
-}
+// 	printJSON(w, &User{
+// 		ID: int(id),
+// 	})
+// }
 
 // UpdateUser updates user
 func (h Handlers) UpdateUser(w http.ResponseWriter, r *http.Request) {
