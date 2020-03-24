@@ -130,10 +130,10 @@ func (h Handlers) CreateUser(w http.ResponseWriter, r *http.Request) {
 		Email:      user.Email,
 		Connection: "Username-Password-Authentication",
 	}
-	statusCode := h.CreateAuth0User(auth0User)
+	statusCode, err := h.CreateAuth0User(auth0User)
 
 	if statusCode != 201 {
-		printCustomError(w, err, statusCode)
+		printCustomError(w, err.Error(), statusCode)
 		return
 	}
 

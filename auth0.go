@@ -3,6 +3,8 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -18,6 +20,11 @@ func getToken() (string, error) {
 	clientID := viper.GetString("clientId")
 	clientSecret := viper.GetString("clientSecret")
 	clientAudience := viper.GetString("audience")
+
+	if len(auth0URI) == 0 || len(clientID) == 0 || len(clientSecret) == 0 || len(clientAudience) == 0 {
+		fmt.Println("No auth0 credentials found in config file")
+		return "", errors.New("No auth0 credentials found")
+	}
 
 	payload := strings.NewReader("grant_type=client_credentials&client_id=" + clientID + "&client_secret=" + clientSecret + "&audience=" + clientAudience)
 	req, _ := http.NewRequest("POST", auth0URI+"oauth/token", payload)
@@ -42,6 +49,7 @@ func (h Handlers) Auth0GetUser(id string) (Auth0User, error) {
 	var user Auth0User
 
 	if err != nil {
+		fmt.Println(err)
 		return user, err
 	}
 
@@ -61,12 +69,12 @@ func (h Handlers) Auth0GetUser(id string) (Auth0User, error) {
 }
 
 // CreateAuth0User creates user at auth0
-func (h Handlers) CreateAuth0User(user Auth0User) int {
+func (h Handlers) CreateAuth0User(user Auth0User) (int, error) {
 	auth0URI := viper.GetString("auth0URI")
 	apikey, err := getToken()
 
 	if err != nil {
-		return 500
+		return 500, err
 	}
 
 	jsonValue, _ := json.Marshal(user)
@@ -77,11 +85,11 @@ func (h Handlers) CreateAuth0User(user Auth0User) int {
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		return 500
+		return 500, err
 	}
 	defer resp.Body.Close()
 
-	return resp.StatusCode
+	return resp.StatusCode, nil
 }
 
 // UpdateAuth0User updates user at auth0
