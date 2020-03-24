@@ -28,7 +28,7 @@ func GetLoansRoutes(h *Handlers) []Route {
 			"update loan",
 			"PATCH",
 			"/loans/{id}",
-			h.updateLoanWithID,
+			h.updateLoanByID,
 		},
 	}
 	return routes
@@ -106,7 +106,7 @@ func (h *Handlers) getLoans(w http.ResponseWriter, r *http.Request) {
 	printJSON(w, &loans)
 }
 
-func (h Handlers) updateLoanWithID(w http.ResponseWriter, r *http.Request) {
+func (h Handlers) updateLoanByID(w http.ResponseWriter, r *http.Request) {
 	type body struct {
 		Amount        float32 `json:"amount,omitempty"`
 		State         string  `json:"state,omitempty"`

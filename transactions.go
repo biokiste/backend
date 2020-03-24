@@ -28,7 +28,7 @@ func GetTransactionsRoutes(h *Handlers) []Route {
 			"update transaction",
 			"PATCH",
 			"/transactions/{id}",
-			h.updateTransactionWithID,
+			h.updateTransactionByID,
 		},
 	}
 
@@ -129,7 +129,7 @@ func (h *Handlers) getTransactions(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func (h *Handlers) updateTransactionWithID(w http.ResponseWriter, r *http.Request) {
+func (h *Handlers) updateTransactionByID(w http.ResponseWriter, r *http.Request) {
 	type body struct {
 		Amount        float32 `json:"amount,omitempty"`
 		Type          string  `json:"type,omitempty"`
