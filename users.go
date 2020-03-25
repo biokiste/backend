@@ -51,10 +51,16 @@ func GetUsersRoutes(h *Handlers) []Route {
 			h.getUserByID,
 		},
 		{
-			"add group",
+			"add user",
 			"POST",
 			"/users",
 			h.addUser,
+		},
+		{
+			"update user",
+			"PATCH",
+			"/users/{id}",
+			h.updateUserByID,
 		},
 	}
 
@@ -309,6 +315,123 @@ func (h *Handlers) getUserByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	printJSON(w, u)
+}
+
+func (h *Handlers) updateUserByID(w http.ResponseWriter, r *http.Request) {
+	type body struct {
+		State           string `json:"state,omitempty"`
+		FirstName       string `json:"firstName,omitempty"`
+		LastName        string `json:"lastName,omitempty"`
+		Birthday        string `json:"birthday,omitempty"`
+		Password        string `json:"password,omitempty"`
+		Email           string `json:"email,omitempty"`
+		Phone           string `json:"phone,omitempty"`
+		Street          string `json:"street,omitempty"`
+		StreetNumber    string `json:"streetNumber,omitempty"`
+		Zip             string `json:"zip,omitempty"`
+		Country         string `json:"country,omitempty"`
+		EntranceDate    string `json:"entranceDate,omitempty"`
+		LeavingDate     string `json:"leavingDate,omitempty"`
+		AdditionalInfos string `json:"additionalInfos,omitempty"`
+		UpdatedBy       int    `json:"updatedBy"`
+		UpdateComment   string `json:"updateComment"`
+	}
+
+	id, _ := mux.Vars(r)["id"]
+
+	var b body
+	err := json.NewDecoder(r.Body).Decode(&b)
+	if err != nil {
+		fmt.Println(err)
+		printInternalError(w)
+		return
+	}
+
+	if b.UpdatedBy == 0 || b.UpdateComment == "" {
+		code := 400
+		msg := "Some required fields are missing!"
+		fmt.Println(msg)
+		printCustomError(w, ErrorMessage{code, msg}, code)
+		return
+	}
+
+	if b.Email != "" || b.Password != "" {
+		var u Auth0User
+		u.Connection = `Connection: "Username-Password-Authentication"`
+		if b.Email != "" {
+			u.Email = b.Email
+		}
+		if b.Password != "" {
+			u.Password = b.Password
+		}
+		err = h.UpdateAuth0User(u, "auth|"+id)
+		if err != nil {
+			fmt.Println(err)
+			printInternalError(w)
+			return
+		}
+	}
+
+	var str strings.Builder
+
+	fmt.Fprint(&str, "UPDATE Users SET ")
+
+	if b.State != "" {
+		fmt.Fprintf(&str, `State = "%s", `, b.State)
+	}
+	if b.FirstName != "" {
+		fmt.Fprintf(&str, `FirstName = "%s", `, b.FirstName)
+	}
+	if b.LastName != "" {
+		fmt.Fprintf(&str, `LastName = "%s", `, b.LastName)
+	}
+	if b.Birthday != "" {
+		fmt.Fprintf(&str, `Birthday = "%s", `, b.Birthday)
+	}
+	if b.Phone != "" {
+		fmt.Fprintf(&str, `Phone = "%s", `, b.Phone)
+	}
+	if b.Street != "" {
+		fmt.Fprintf(&str, `Street = "%s", `, b.Street)
+	}
+	if b.StreetNumber != "" {
+		fmt.Fprintf(&str, `StreetNumber = "%s", `, b.StreetNumber)
+	}
+	if b.Zip != "" {
+		fmt.Fprintf(&str, `Zip = "%s", `, b.Zip)
+	}
+	if b.Country != "" {
+		fmt.Fprintf(&str, `Country = "%s", `, b.Country)
+	}
+	if b.EntranceDate != "" {
+		fmt.Fprintf(&str, `EntranceDate = "%s", `, b.EntranceDate)
+	}
+	if b.LeavingDate != "" {
+		fmt.Fprintf(&str, `LeavingDate = "%s", `, b.LeavingDate)
+	}
+	if b.AdditionalInfos != "" {
+		fmt.Fprintf(&str, `AdditionalInfos = "%s", `, b.AdditionalInfos)
+	}
+	fmt.Fprintf(&str, `UpdatedAt = CURRENT_TIMESTAMP(), UpdatedBy = %d, UpdateComment = "%s" WHERE ID = %s`, b.UpdatedBy, b.UpdateComment, id)
+
+	query := str.String()
+
+	result, err := h.DB.Exec(query)
+
+	if err != nil {
+		fmt.Println(err)
+		printInternalError(w)
+		return
+	}
+
+	rowsAffected, _ := result.RowsAffected()
+
+	type resBody struct {
+		Status       string `json:"status"`
+		RowsAffected int    `json:"rowsAffected"`
+	}
+
+	printJSON(w, &resBody{"ok", int(rowsAffected)})
 }
 
 func deleteUser(db *sql.DB, id int64) (bool, error) {

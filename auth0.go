@@ -33,7 +33,7 @@ type Auth0Bearer struct {
 type Auth0User struct {
 	Connection string `json:"connection"`
 	UserID     string `json:"user_id,omitempty"`
-	Email      string `json:"email"`
+	Email      string `json:"email,omitempty"`
 	Password   string `json:"password,omitempty"`
 	LastLogin  string `json:"last_login,omitempty"`
 }
