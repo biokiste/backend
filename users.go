@@ -62,6 +62,12 @@ func GetUsersRoutes(h *Handlers) []Route {
 			"/users/{id}",
 			h.updateUserByID,
 		},
+		{
+			"add user to group",
+			"POST",
+			"/users/{id}/groups",
+			h.addUserToGroup,
+		},
 	}
 
 	return routes
@@ -432,6 +438,66 @@ func (h *Handlers) updateUserByID(w http.ResponseWriter, r *http.Request) {
 	}
 
 	printJSON(w, &resBody{"ok", int(rowsAffected)})
+}
+
+func (h *Handlers) addUserToGroup(w http.ResponseWriter, r *http.Request) {
+	type body struct {
+		GroupID  int  `json:"groupId"`
+		IsLeader bool `json:"isLeader,omitempty"`
+	}
+
+	userID, _ := mux.Vars(r)["id"]
+
+	var b body
+	err := json.NewDecoder(r.Body).Decode(&b)
+	if err != nil {
+		fmt.Println(err)
+		printInternalError(w)
+		return
+	}
+
+	if b.GroupID == 0 {
+		code := 400
+		msg := "Some required fields are missing!"
+		fmt.Println(msg)
+		printCustomError(w, ErrorMessage{code, msg}, code)
+		return
+	}
+
+	isLeader := 0
+	if b.IsLeader {
+		isLeader = 1
+	}
+
+	result, err := h.DB.Exec(
+		`INSERT INTO GroupUsers (GroupID, UserID, IsLeader)
+		 VALUES (?,?,?)`,
+		b.GroupID,
+		userID,
+		isLeader,
+	)
+
+	if err != nil {
+		fmt.Println(err)
+		printInternalError(w)
+		return
+	}
+
+	type resBody struct {
+		Status       string `json:"status"`
+		LastInsertId int    `json:"id"`
+	}
+
+	id, err := result.LastInsertId()
+
+	if err != nil {
+		fmt.Println(err)
+		printInternalError(w)
+		return
+	}
+
+	printJSON(w, &resBody{"ok", int(id)})
+
 }
 
 func deleteUser(db *sql.DB, id int64) (bool, error) {

@@ -134,6 +134,24 @@ ALTER TABLE `Users`
   MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT;
 ```
 
+### GroupUsers
+
+```sql
+CREATE TABLE `GroupUsers` (
+  `ID` int(11) NOT NULL,
+  `GroupID` int(11) NOT NULL,
+  `UserID` int(11) NOT NULL,
+  `IsLeader` int(11) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+ALTER TABLE `GroupUsers`
+  ADD PRIMARY KEY (`ID`),
+  ADD UNIQUE KEY `GroupID` (`GroupID`,`UserID`);
+
+ALTER TABLE `GroupUsers`
+  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT;
+```
+
 ### api
 
 Create user:
