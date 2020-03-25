@@ -74,6 +74,12 @@ func GetUsersRoutes(h *Handlers) []Route {
 			"/users/{id}/groups/{groupId}",
 			h.updateGroupUser,
 		},
+		{
+			"remove user from group",
+			"DELETE",
+			"/users/{id}/groups/{groupId}",
+			h.removeUserFromGroup,
+		},
 	}
 
 	return routes
@@ -527,6 +533,30 @@ func (h *Handlers) updateGroupUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	query := fmt.Sprintf("UPDATE GroupUsers SET IsLeader = %d WHERE GroupID = %s AND UserID = %s", isLeader, groupID, userID)
+
+	result, err := h.DB.Exec(query)
+
+	if err != nil {
+		fmt.Println(err)
+		printInternalError(w)
+		return
+	}
+
+	rowsAffected, _ := result.RowsAffected()
+
+	type resBody struct {
+		Status       string `json:"status"`
+		RowsAffected int    `json:"rowsAffected"`
+	}
+
+	printJSON(w, &resBody{"ok", int(rowsAffected)})
+}
+
+func (h *Handlers) removeUserFromGroup(w http.ResponseWriter, r *http.Request) {
+	userID, _ := mux.Vars(r)["id"]
+	groupID, _ := mux.Vars(r)["groupId"]
+
+	query := fmt.Sprintf("DELETE FROM GroupUsers WHERE GroupID = %s AND UserID = %s", groupID, userID)
 
 	result, err := h.DB.Exec(query)
 
