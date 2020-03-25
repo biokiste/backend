@@ -232,69 +232,69 @@ func (h Handlers) GetTransactionsByUser(w http.ResponseWriter, r *http.Request) 
 }
 
 // AddTransaction updates user balance with transactions
-func (h Handlers) AddTransaction(w http.ResponseWriter, r *http.Request) {
-	var transactionRequest TransactionRequest
-	err := json.NewDecoder(r.Body).Decode(&transactionRequest)
-	if err != nil {
-		printDbError(w)
-		return
-	}
+// func (h Handlers) AddTransaction(w http.ResponseWriter, r *http.Request) {
+// 	var transactionRequest TransactionRequest
+// 	err := json.NewDecoder(r.Body).Decode(&transactionRequest)
+// 	if err != nil {
+// 		printDbError(w)
+// 		return
+// 	}
 
-	for _, t := range transactionRequest.Transactions {
-		stmt, err := h.DB.Prepare(`
-			INSERT INTO transactions(
-				user_id,
-				category_id,
-				amount,
-				status,
-				created_at,
-				reason) VALUES(?,?,?,?,?,?)
-		`)
-		if err != nil {
-			printDbError(w)
-			return
-		}
-		_, err = stmt.Exec(
-			transactionRequest.User.ID,
-			t.CategoryID,
-			t.Amount,
-			t.Status,
-			t.CreatedAt,
-			t.Reason,
-		)
-		if err != nil {
-			printDbError(w)
-			return
-		}
-	}
+// 	for _, t := range transactionRequest.Transactions {
+// 		stmt, err := h.DB.Prepare(`
+// 			INSERT INTO transactions(
+// 				user_id,
+// 				category_id,
+// 				amount,
+// 				status,
+// 				created_at,
+// 				reason) VALUES(?,?,?,?,?,?)
+// 		`)
+// 		if err != nil {
+// 			printDbError(w)
+// 			return
+// 		}
+// 		_, err = stmt.Exec(
+// 			transactionRequest.User.ID,
+// 			t.CategoryID,
+// 			t.Amount,
+// 			t.Status,
+// 			t.CreatedAt,
+// 			t.Reason,
+// 		)
+// 		if err != nil {
+// 			printDbError(w)
+// 			return
+// 		}
+// 	}
 
-	err = h.LogUserTransaction(transactionRequest.User.ID)
-	if err != nil {
-		printDbError(w)
-		return
-	}
+// 	err = h.LogUserTransaction(transactionRequest.User.ID)
+// 	if err != nil {
+// 		printDbError(w)
+// 		return
+// 	}
 
-	balance, err := h.GetBalance(transactionRequest.User.ID)
-	printJSON(w, &UserTransactionResponse{
-		UserTransaction{Balance: balance},
-	})
-}
+// 	balance, err := h.GetBalance(transactionRequest.User.ID)
+// 	printJSON(w, &UserTransactionResponse{
+// 		UserTransaction{Balance: balance},
+// 	})
+// }
 
-// UpdatePayment updates payment possibly as accepted or rejected
-func (h Handlers) UpdatePayment(w http.ResponseWriter, r *http.Request) {
-	var transaction TransactionRequest
-	err := json.NewDecoder(r.Body).Decode(&transaction)
-	if err != nil {
-		printDbError(w)
-		return
-	}
-	err = h.UpdateTransaction(transaction)
-	if err != nil {
-		printError(w, err.Error)
-	} else {
-		printSuccess(w)
-	}
-}
+// // UpdatePayment updates payment possibly as accepted or rejected
+// func (h Handlers) UpdatePayment(w http.ResponseWriter, r *http.Request) {
+// 	var transaction TransactionRequest
+// 	err := json.NewDecoder(r.Body).Decode(&transaction)
+// 	if err != nil {
+// 		printDbError(w)
+// 		return
+// 	}
+// 	err = h.UpdateTransaction(transaction)
+// 	if err != nil {
+// 		printError(w, err.Error)
+// 	} else {
+// 		printSuccess(w)
+// 	}
+// }
 
 // GetOpenPayments delivers all open user transactions (payments)
 func (h Handlers) GetOpenPayments(w http.ResponseWriter, r *http.Request) {

@@ -1,14 +1,14 @@
 package main
 
 // UsersResponse JSON API Spec Wrapper
-type UsersResponse struct {
-	Users []User `json:"data"`
-}
+// type UsersResponse struct {
+// 	Users []User `json:"data"`
+// }
 
-// UserResponse JSON API Spec Wrapper
-type UserResponse struct {
-	User `json:"data"`
-}
+// // UserResponse JSON API Spec Wrapper
+// type UserResponse struct {
+// 	User `json:"data"`
+// }
 
 // Auth0Bearer represents token object
 // type Auth0Bearer struct {
@@ -96,10 +96,10 @@ type TransactionState struct {
 }
 
 // TransactionRequest implements user and requested transactions
-type TransactionRequest struct {
-	Transactions []Transaction `json:"transactions"`
-	User         `json:"user"`
-}
+// type TransactionRequest struct {
+// 	Transactions []Transaction `json:"transactions"`
+// 	User         `json:"user"`
+// }
 
 // GroupType represents type of member group
 type GroupType struct {

@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/gorilla/mux"
 )
@@ -38,16 +39,22 @@ type user struct {
 func GetUsersRoutes(h *Handlers) []Route {
 	routes := []Route{
 		{
-			"add group",
-			"POST",
+			"get users",
+			"GET",
 			"/users",
-			h.addUser,
+			h.getUsers,
 		},
 		{
 			"get user",
 			"GET",
 			"/users/{id}",
 			h.getUserByID,
+		},
+		{
+			"add group",
+			"POST",
+			"/users",
+			h.addUser,
 		},
 	}
 
@@ -153,6 +160,91 @@ func (h *Handlers) addUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	printJSON(w, &resBody{"ok", int(id)})
+}
+
+func (h *Handlers) getUsers(w http.ResponseWriter, r *http.Request) {
+	params := r.URL.Query()
+	lastActiveCount := params.Get("last_active")
+
+	var str strings.Builder
+	fmt.Fprint(&str, `
+		SELECT
+			ID,
+			State,
+			FirstName,
+			LastName,
+			Email,
+			Phone,
+			Street,
+			StreetNumber,
+			Zip,
+			Country,
+			Birthday,
+			EntranceDate,
+			COALESCE(LeavingDate, '') as LeavingDate,
+			COALESCE(AdditionalInfos, '') as AdditionalInfos,
+			COALESCE(LastActivityAt, '') as LastActivityAt,
+			CreatedAt,
+			CreatedBy,
+			COALESCE(UpdatedAt, '') as UpdatedAt,
+			COALESCE(UpdatedBy, 0) as UpdatedBy,
+			COALESCE(UpdateComment, '') as UpdateComment
+		FROM Users`)
+
+	if lastActiveCount != "" {
+		date := time.Now().Format("2006-01-02 15:04:05")
+		fmt.Fprintf(&str, ` WHERE LastActivityAt <= "%s" ORDER BY LastActivityAt DESC LIMIT %s`, date, lastActiveCount)
+	}
+
+	query := str.String()
+	results, err := h.DB.Query(query)
+
+	if err != nil {
+		fmt.Println(err)
+		printInternalError(w)
+		return
+	}
+
+	var users []user
+
+	for results.Next() {
+		var u user
+		err = results.Scan(
+			&u.ID,
+			&u.State,
+			&u.FirstName,
+			&u.LastName,
+			&u.Email,
+			&u.Phone,
+			&u.Street,
+			&u.StreetNumber,
+			&u.Zip,
+			&u.Country,
+			&u.Birthday,
+			&u.EntranceDate,
+			&u.LeavingDate,
+			&u.AdditionalInfos,
+			&u.LastActivityAt,
+			&u.CreatedAt,
+			&u.CreatedBy,
+			&u.UpdatedAt,
+			&u.UpdatedBy,
+			&u.UpdateComment,
+		)
+		if err != nil {
+			fmt.Println(err)
+			printInternalError(w)
+			return
+		}
+		users = append(users, u)
+	}
+
+	if len(users) == 0 {
+		users = make([]user, 0)
+	}
+
+	printJSON(w, &users)
+
 }
 
 func (h *Handlers) getUserByID(w http.ResponseWriter, r *http.Request) {
