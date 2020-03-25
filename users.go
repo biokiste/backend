@@ -68,6 +68,12 @@ func GetUsersRoutes(h *Handlers) []Route {
 			"/users/{id}/groups",
 			h.addUserToGroup,
 		},
+		{
+			"update group user",
+			"PATCH",
+			"/users/{id}/groups/{groupId}",
+			h.updateGroupUser,
+		},
 	}
 
 	return routes
@@ -497,6 +503,47 @@ func (h *Handlers) addUserToGroup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	printJSON(w, &resBody{"ok", int(id)})
+}
+
+func (h *Handlers) updateGroupUser(w http.ResponseWriter, r *http.Request) {
+	type body struct {
+		IsLeader bool `json:"isLeader"`
+	}
+
+	userID, _ := mux.Vars(r)["id"]
+	groupID, _ := mux.Vars(r)["groupId"]
+
+	var b body
+	err := json.NewDecoder(r.Body).Decode(&b)
+	if err != nil {
+		fmt.Println(err)
+		printInternalError(w)
+		return
+	}
+
+	isLeader := 0
+	if b.IsLeader {
+		isLeader = 1
+	}
+
+	query := fmt.Sprintf("UPDATE GroupUsers SET IsLeader = %d WHERE GroupID = %s AND UserID = %s", isLeader, groupID, userID)
+
+	result, err := h.DB.Exec(query)
+
+	if err != nil {
+		fmt.Println(err)
+		printInternalError(w)
+		return
+	}
+
+	rowsAffected, _ := result.RowsAffected()
+
+	type resBody struct {
+		Status       string `json:"status"`
+		RowsAffected int    `json:"rowsAffected"`
+	}
+
+	printJSON(w, &resBody{"ok", int(rowsAffected)})
 
 }
 
