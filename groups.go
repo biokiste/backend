@@ -30,6 +30,12 @@ func GetGroupsRoutes(h *Handlers) []Route {
 			"/groups",
 			h.getGroups,
 		},
+		{
+			"get grogroupups",
+			"GET",
+			"/groups/{id}",
+			h.getGroupByID,
+		},
 	}
 
 	return routes
@@ -197,16 +203,16 @@ func (h *Handlers) getGroups(w http.ResponseWriter, r *http.Request) {
 		}
 
 		q := fmt.Sprintf("SELECT ID, GroupID, UserID, IsLeader FROM GroupUsers WHERE GroupID = %d", g.ID)
-		r, err := h.DB.Query(q)
+		result, err := h.DB.Query(q)
 		if err != nil {
 			fmt.Println(err)
 			printInternalError(w)
 			return
 		}
-		defer r.Close()
-		for r.Next() {
+		defer result.Close()
+		for result.Next() {
 			var gu groupUser
-			err := r.Scan(
+			err := result.Scan(
 				&gu.ID,
 				&gu.GroupID,
 				&gu.UserID,
@@ -238,58 +244,60 @@ func (h *Handlers) getGroups(w http.ResponseWriter, r *http.Request) {
 	printJSON(w, &groups)
 }
 
-// // GetGroupsWithUsers return groups with user ids and ids of group leaders
-// func (h Handlers) GetGroupsWithUsers() ([]Group, error) {
-// 	results, err := h.DB.Query(`
-// 		SELECT
-// 			group_id, user_id, position_id
-// 		FROM
-// 			groups_users
-// 		WHERE
-// 			active=1
-// 	`)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	defer results.Close()
+func (h *Handlers) getGroupByID(w http.ResponseWriter, r *http.Request) {
+	id, _ := mux.Vars(r)["id"]
 
-// 	var groups []Group
+	query := fmt.Sprintf("SELECT ID, GroupKey, Email, CreatedAt, CreatedBy, COALESCE(UpdatedAt, '') AS UpdatedAt, COALESCE(UpdatedBy, 0) AS UpdatedBy, COALESCE(UpdateComment, '') AS UpdateComment FROM Groups WHERE ID = %s", id)
 
-// 	for results.Next() {
-// 		var entry GroupUserEntry
-// 		err = results.Scan(&entry.GroupID, &entry.UserID, &entry.PositionID)
+	row := h.DB.QueryRow(query)
 
-// 		if err != nil {
-// 			panic(err.Error())
-// 		}
+	var g group
 
-// 		var idx int = -1
+	row.Scan(
+		&g.ID,
+		&g.Key,
+		&g.Email,
+		&g.CreatedAt,
+		&g.CreatedBy,
+		&g.UpdatedAt,
+		&g.UpdatedBy,
+		&g.UpdateComment,
+	)
 
-// 		for i, g := range groups {
-// 			if g.ID == entry.GroupID {
-// 				idx = i
-// 				break
-// 			}
-// 		}
+	q := fmt.Sprintf("SELECT ID, GroupID, UserID, IsLeader FROM GroupUsers WHERE GroupID = %d", g.ID)
 
-// 		if idx == -1 {
-// 			var newGroup Group
-// 			newGroup.ID = entry.GroupID
-// 			newGroup.UserIDs = append(newGroup.UserIDs, entry.UserID)
-// 			if entry.PositionID == 1 {
-// 				newGroup.LeaderIDs = append(newGroup.LeaderIDs, entry.UserID)
-// 			}
-// 			groups = append(groups, newGroup)
-// 		} else {
-// 			var group = groups[idx]
-// 			group.UserIDs = append(group.UserIDs, entry.UserID)
-// 			if entry.PositionID == 1 {
-// 				group.LeaderIDs = append(group.LeaderIDs, entry.UserID)
-// 			}
-// 			groups[idx] = group
-// 		}
+	result, err := h.DB.Query(q)
+	if err != nil {
+		fmt.Println(err)
+		printInternalError(w)
+		return
+	}
+	defer result.Close()
+	for result.Next() {
+		var gu groupUser
+		err := result.Scan(
+			&gu.ID,
+			&gu.GroupID,
+			&gu.UserID,
+			&gu.IsLeader,
+		)
+		if err != nil {
+			fmt.Println(err)
+			printInternalError(w)
+			return
+		}
+		g.Users = append(g.Users, gu.UserID)
+		if gu.IsLeader == 1 {
+			g.Leaders = append(g.Leaders, gu.UserID)
+		}
+	}
+	if len(g.Users) == 0 {
+		g.Users = make([]int, 0)
+	}
+	if len(g.Leaders) == 0 {
+		g.Leaders = make([]int, 0)
+	}
 
-// 	}
+	printJSON(w, &g)
 
-// 	return groups, err
-// }
+}
