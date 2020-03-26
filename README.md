@@ -16,8 +16,9 @@ expects connection string of mysql instance in config.toml (app root)
 ```sql
 CREATE TABLE `Settings` (
   `ID` int(11) NOT NULL,
-  `ItemKey` varchar(255) NOT NULL,
-  `ItemValue` varchar(255) NOT NULL,
+  `SettingKey` varchar(255) NOT NULL,
+  `Value` varchar(255) NOT NULL,
+  `Description` varchar(255) NOT NULL,
   `CreatedAt` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `CreatedBy` int(11) NOT NULL,
   `UpdatedAt` datetime DEFAULT NULL,
@@ -27,7 +28,7 @@ CREATE TABLE `Settings` (
 
 ALTER TABLE `Settings`
   ADD PRIMARY KEY (`ID`),
-  ADD UNIQUE KEY `ItemKey` (`ItemKey`);
+  ADD UNIQUE KEY `SettingKey` (`SettingKey`);
 
 ALTER TABLE `Settings`
   MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT;

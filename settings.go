@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/gorilla/mux"
 )
@@ -33,7 +34,7 @@ func GetSettingsRoutes(h *Handlers) []Route {
 			"update setting",
 			"PATCH",
 			"/settings/{key}",
-			h.updateSettingWithKey,
+			h.updateSettingByKey,
 		},
 	}
 	return routes
@@ -41,8 +42,9 @@ func GetSettingsRoutes(h *Handlers) []Route {
 
 type setting struct {
 	ID            int    `json:"id"`
-	ItemKey       string `json:"key"`
-	ItemValue     string `json:"value"`
+	Key           string `json:"key"`
+	Value         string `json:"value"`
+	Description   string `json:"description"`
 	CreatedAt     string `json:"createdAt"`
 	CreatedBy     int    `json:"createdBy"`
 	UpdatedAt     string `json:"updatedAt,omitempty"`
@@ -54,8 +56,9 @@ func (h Handlers) getSettings(w http.ResponseWriter, r *http.Request) {
 	results, err := h.DB.Query(`
 		SELECT 
 			ID,
-			ItemKey,
-			ItemValue,
+			SettingKey,
+			Value,
+			Description
 			CreatedAt,
 			CreatedBy,
 			COALESCE(UpdatedAt, '') AS UpdatedAt,
@@ -76,8 +79,9 @@ func (h Handlers) getSettings(w http.ResponseWriter, r *http.Request) {
 		var s setting
 		err = results.Scan(
 			&s.ID,
-			&s.ItemKey,
-			&s.ItemValue,
+			&s.Key,
+			&s.Value,
+			&s.Description,
 			&s.CreatedAt,
 			&s.CreatedBy,
 			&s.UpdatedAt,
@@ -106,18 +110,20 @@ func (h Handlers) getSettingByKey(w http.ResponseWriter, r *http.Request) {
 	if err := h.DB.QueryRow(`
 		SELECT 
 			ID,
-			ItemKey,
-			ItemValue,
+			SettingKey,
+			Value,
+			Description,
 			CreatedAt,
 			CreatedBy,
 			COALESCE(UpdatedAt, '') AS UpdatedAt,
 			COALESCE(UpdatedBy, 0) AS UpdatedBy,
 			COALESCE(UpdateComment, '') AS UpdateComment
 		FROM Settings
-		WHERE ItemKey = ?`, key).Scan(
+		WHERE SettingKey = ?`, key).Scan(
 		&s.ID,
-		&s.ItemKey,
-		&s.ItemValue,
+		&s.Key,
+		&s.Value,
+		&s.Description,
 		&s.CreatedAt,
 		&s.CreatedBy,
 		&s.UpdatedAt,
@@ -131,9 +137,10 @@ func (h Handlers) getSettingByKey(w http.ResponseWriter, r *http.Request) {
 	printJSON(w, &s)
 }
 
-func (h Handlers) updateSettingWithKey(w http.ResponseWriter, r *http.Request) {
+func (h Handlers) updateSettingByKey(w http.ResponseWriter, r *http.Request) {
 	type body struct {
-		Value         string `json:"value"`
+		Value         string `json:"value,omitempty"`
+		Description   string `json:"description,omitempty"`
 		UpdatedBy     int    `json:"updatedBy"`
 		UpdateComment string `json:"updateComment"`
 	}
@@ -148,7 +155,7 @@ func (h Handlers) updateSettingWithKey(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if b.Value == "" || b.UpdatedBy == 0 || b.UpdateComment == "" {
+	if b.UpdatedBy == 0 || b.UpdateComment == "" {
 		code := 400
 		msg := "Some required fields are missing!"
 		fmt.Println(msg)
@@ -156,11 +163,20 @@ func (h Handlers) updateSettingWithKey(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	result, err := h.DB.Exec(`
-		UPDATE Settings
-			SET ItemValue = ?, UpdatedAt = CURRENT_TIMESTAMP(), UpdatedBy = ?, UpdateComment = ?
-		WHERE ItemKey = ?
-	`, b.Value, b.UpdatedBy, b.UpdateComment, key)
+	var str strings.Builder
+	fmt.Fprint(&str, "UPDATE Settings SET ")
+	if b.Value != "" {
+		fmt.Fprintf(&str, "Value = '%s', ", b.Value)
+	}
+	if b.Description != "" {
+		fmt.Fprintf(&str, "Description = '%s', ", b.Description)
+	}
+
+	fmt.Fprintf(&str, `UpdatedAt = CURRENT_TIMESTAMP(), UpdatedBy = %d, UpdateComment = "%s" WHERE SettingKey = "%s"`, b.UpdatedBy, b.UpdateComment, key)
+
+	query := str.String()
+
+	result, err := h.DB.Exec(query)
 
 	if err != nil {
 		fmt.Println(err)
@@ -180,9 +196,10 @@ func (h Handlers) updateSettingWithKey(w http.ResponseWriter, r *http.Request) {
 
 func (h Handlers) addSetting(w http.ResponseWriter, r *http.Request) {
 	type body struct {
-		Key       string `json:"key"`
-		Value     string `json:"value"`
-		CreatedBy int    `json:"createdBy"`
+		Key         string `json:"key"`
+		Value       string `json:"value"`
+		Description string `json:"description"`
+		CreatedBy   int    `json:"createdBy"`
 	}
 
 	var b body
@@ -193,7 +210,7 @@ func (h Handlers) addSetting(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if b.Key == "" || b.Value == "" || b.CreatedBy == 0 {
+	if b.Key == "" || b.Value == "" || b.Description == "" || b.CreatedBy == 0 {
 		code := 400
 		msg := "Some required fields are missing!"
 		fmt.Println(msg)
@@ -202,10 +219,11 @@ func (h Handlers) addSetting(w http.ResponseWriter, r *http.Request) {
 	}
 
 	result, err := h.DB.Exec(
-		`INSERT INTO Settings (ItemKey, ItemValue, CreatedBy)
-		 VALUES (?,?,?)`,
+		`INSERT INTO Settings (SettingKey, Value, Description, CreatedBy)
+		 VALUES (?,?,?,?)`,
 		b.Key,
 		b.Value,
+		b.Description,
 		b.CreatedBy,
 	)
 
