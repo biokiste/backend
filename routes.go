@@ -24,36 +24,6 @@ func GetRoutes(h *Handlers) Routes {
 			"/status",
 			h.ShowStatus,
 		},
-		// Route{
-		// 	"ListUsers",
-		// 	"GET",
-		// 	"/users",
-		// 	h.ListUsers,
-		// },
-		// Route{
-		// 	"LastActiveUsers",
-		// 	"GET",
-		// 	"/users/lastactive",
-		// 	h.LastActiveUsers,
-		// },
-		// Route{
-		// 	"GetUserByEmail",
-		// 	"GET",
-		// 	"/users/{email}",
-		// 	h.GetUserByEmail,
-		// },
-		Route{
-			"GetAuth0User",
-			"GET",
-			"/user/auth/{id}",
-			h.GetAuth0User,
-		},
-		// Route{
-		// 	"UpdateUser",
-		// 	"PATCH",
-		// 	"/user",
-		// 	h.UpdateUser,
-		// },
 		Route{
 			"GetUserStates",
 			"GET",
@@ -78,11 +48,5 @@ func GetRoutes(h *Handlers) Routes {
 			"/types/transaction",
 			h.GetTransactionTypes,
 		},
-		// Route{
-		// 	"SendMail",
-		// 	"GET",
-		// 	"/api/send/mail",
-		// 	h.SendMail,
-		// },
 	}
 }

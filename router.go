@@ -38,6 +38,10 @@ func APIRouter(config *RouterConfig) *mux.Router {
 		routes = append(routes, r)
 	}
 
+	for _, r := range GetRoutes(config.Handlers) {
+		routes = append(routes, r)
+	}
+
 	for _, r := range routes {
 		var h http.Handler
 		h = r.HandlerFunc
@@ -50,18 +54,6 @@ func APIRouter(config *RouterConfig) *mux.Router {
 	}
 
 	// load routes from routes.go
-	for _, route := range GetRoutes(config.Handlers) {
-		var handler http.Handler
-
-		handler = route.HandlerFunc
-		handler = Auth(Logger(handler, route.Name))
-
-		subRouter.
-			Methods(route.Method).
-			Path(route.Pattern).
-			Name(route.Name).
-			Handler(handler)
-	}
 
 	router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("./assets/"))))
 
