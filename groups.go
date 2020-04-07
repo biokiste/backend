@@ -252,6 +252,11 @@ func (h *Handlers) getGroupByID(w http.ResponseWriter, r *http.Request) {
 		&g.UpdateComment,
 	)
 
+	if g.ID == 0 {
+		respondWithHTTP(w, http.StatusNotFound)
+		return
+	}
+
 	q := fmt.Sprintf("SELECT ID, GroupID, UserID, IsLeader FROM GroupUsers WHERE GroupID = %d", g.ID)
 
 	result, err := h.DB.Query(q)
