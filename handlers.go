@@ -15,26 +15,26 @@ type Handlers struct {
 
 // ShowStatus delivers actual status
 func (h Handlers) ShowStatus(w http.ResponseWriter, r *http.Request) {
-	printJSON(w, "ok")
+	respondWithHTTP(w, http.StatusOK)
 }
 
 // GetUserStates returns user states
 func (h Handlers) GetUserStates(w http.ResponseWriter, r *http.Request) {
 	var states []string
 	states = viper.GetStringSlice("user_states")
-	printJSON(w, &states)
+	respondWithJSON(w, JSONResponse{Body: &states})
 }
 
 // GetTransactionStates returns transaction states
 func (h Handlers) GetTransactionStates(w http.ResponseWriter, r *http.Request) {
 	var states []string
 	states = viper.GetStringSlice("transaction_states")
-	printJSON(w, &states)
+	respondWithJSON(w, JSONResponse{Body: &states})
 }
 
 // GetTransactionTypes return transaction types
 func (h Handlers) GetTransactionTypes(w http.ResponseWriter, r *http.Request) {
 	var types []string
 	types = viper.GetStringSlice("transaction_types")
-	printJSON(w, &types)
+	respondWithJSON(w, JSONResponse{Body: &types})
 }

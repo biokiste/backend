@@ -92,7 +92,7 @@ func (h *Handlers) getTransactions(w http.ResponseWriter, r *http.Request) {
 	results, err := h.DB.Query(query)
 	if err != nil {
 		fmt.Println(err)
-		printInternalError(w)
+		respondWithHTTP(w, http.StatusInternalServerError)
 		return
 	}
 	defer results.Close()
@@ -115,7 +115,7 @@ func (h *Handlers) getTransactions(w http.ResponseWriter, r *http.Request) {
 		)
 		if err != nil {
 			fmt.Println(err)
-			printInternalError(w)
+			respondWithHTTP(w, http.StatusInternalServerError)
 			return
 		}
 		transactions = append(transactions, t)
@@ -125,8 +125,7 @@ func (h *Handlers) getTransactions(w http.ResponseWriter, r *http.Request) {
 		transactions = make([]transaction, 0)
 	}
 
-	printJSON(w, &transactions)
-
+	respondWithJSON(w, JSONResponse{Body: &transactions})
 }
 
 func (h *Handlers) updateTransactionByID(w http.ResponseWriter, r *http.Request) {
@@ -143,7 +142,7 @@ func (h *Handlers) updateTransactionByID(w http.ResponseWriter, r *http.Request)
 	err := json.NewDecoder(r.Body).Decode(&b)
 	if err != nil {
 		fmt.Println(err)
-		printInternalError(w)
+		respondWithHTTP(w, http.StatusInternalServerError)
 		return
 	}
 
@@ -166,10 +165,9 @@ func (h *Handlers) updateTransactionByID(w http.ResponseWriter, r *http.Request)
 	}
 
 	if b.UpdatedBy == 0 || b.UpdateComment == "" {
-		code := 400
-		msg := "Some required fields are missing!"
-		fmt.Println(msg)
-		printCustomError(w, ErrorMessage{code, msg}, code)
+		err := SimpleResponseBody{"Some required fields are missing!"}
+		fmt.Println(err.Text)
+		respondWithJSON(w, JSONResponse{http.StatusBadRequest, &err})
 		return
 	}
 
@@ -181,18 +179,13 @@ func (h *Handlers) updateTransactionByID(w http.ResponseWriter, r *http.Request)
 
 	if err != nil {
 		fmt.Println(err)
-		printInternalError(w)
+		respondWithHTTP(w, http.StatusInternalServerError)
 		return
 	}
 
 	rowsAffected, _ := result.RowsAffected()
 
-	type resBody struct {
-		Status       string `json:"status"`
-		RowsAffected int    `json:"rowsAffected"`
-	}
-
-	printJSON(w, &resBody{"ok", int(rowsAffected)})
+	respondWithJSON(w, JSONResponse{Body: UpdateResponseBody{int(rowsAffected)}})
 }
 
 func (h *Handlers) addTransaction(w http.ResponseWriter, r *http.Request) {
@@ -208,15 +201,14 @@ func (h *Handlers) addTransaction(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&b)
 	if err != nil {
 		fmt.Println(err)
-		printInternalError(w)
+		respondWithHTTP(w, http.StatusInternalServerError)
 		return
 	}
 
 	if b.Amount == 0 || b.Type == "" || b.State == "" || b.UserID == 0 || b.CreatedBy == 0 {
-		code := 400
-		msg := "Some required fields are missing!"
-		fmt.Println(msg)
-		printCustomError(w, ErrorMessage{code, msg}, code)
+		err := SimpleResponseBody{"Some required fields are missing!"}
+		fmt.Println(err.Text)
+		respondWithJSON(w, JSONResponse{http.StatusBadRequest, &err})
 		return
 	}
 
@@ -232,7 +224,7 @@ func (h *Handlers) addTransaction(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		fmt.Println(err)
-		printInternalError(w)
+		respondWithHTTP(w, http.StatusInternalServerError)
 		return
 	}
 
@@ -248,9 +240,9 @@ func (h *Handlers) addTransaction(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		fmt.Println(err)
-		printInternalError(w)
+		respondWithHTTP(w, http.StatusInternalServerError)
 		return
 	}
 
-	printJSON(w, &resBody{"ok", int(id)})
+	respondWithJSON(w, JSONResponse{Body: InsertResponseBody{int(id)}})
 }
