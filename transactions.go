@@ -190,11 +190,12 @@ func (h *Handlers) updateTransactionByID(w http.ResponseWriter, r *http.Request)
 
 func (h *Handlers) addTransaction(w http.ResponseWriter, r *http.Request) {
 	type body struct {
-		Amount    float32 `json:"amount"`
-		Type      string  `json:"type"`
-		State     string  `json:"state"`
-		UserID    int     `json:"userId"`
-		CreatedBy int     `json:"createdBy"`
+		Amount        float32 `json:"amount"`
+		Type          string  `json:"type"`
+		State         string  `json:"state"`
+		UserID        int     `json:"userId"`
+		CreatedBy     int     `json:"createdBy"`
+		UpdateComment string  `json:"updateComment"`
 	}
 
 	var b body
@@ -205,7 +206,7 @@ func (h *Handlers) addTransaction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if b.Amount == 0 || b.Type == "" || b.State == "" || b.UserID == 0 || b.CreatedBy == 0 {
+	if b.Amount == 0 && b.UpdateComment == "" || b.Type == "" || b.State == "" || b.UserID == 0 || b.CreatedBy == 0 {
 		err := SimpleResponseBody{"Some required fields are missing!"}
 		fmt.Println(err.Text)
 		respondWithJSON(w, JSONResponse{http.StatusBadRequest, &err})
