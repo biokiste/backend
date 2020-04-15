@@ -149,10 +149,11 @@ func (h *Handlers) addUser(w http.ResponseWriter, r *http.Request) {
 	id, _ := result.LastInsertId()
 
 	auth0User := Auth0User{
-		UserID:     strconv.Itoa(int(id)),
-		Password:   b.Password,
-		Email:      b.Email,
-		Connection: "Username-Password-Authentication",
+		UserID:      strconv.Itoa(int(id)),
+		Password:    b.Password,
+		Email:       b.Email,
+		Connection:  "Username-Password-Authentication",
+		VerifyEmail: false,
 	}
 
 	token, err := getToken()

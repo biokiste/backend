@@ -31,11 +31,12 @@ type Auth0Bearer struct {
 
 // Auth0User represents Auth0 User data
 type Auth0User struct {
-	Connection string `json:"connection"`
-	UserID     string `json:"user_id,omitempty"`
-	Email      string `json:"email,omitempty"`
-	Password   string `json:"password,omitempty"`
-	LastLogin  string `json:"last_login,omitempty"`
+	Connection  string `json:"connection"`
+	UserID      string `json:"user_id,omitempty"`
+	Email       string `json:"email,omitempty"`
+	Password    string `json:"password,omitempty"`
+	LastLogin   string `json:"last_login,omitempty"`
+	VerifyEmail bool   `json:"verify_email"`
 }
 
 func getToken() (string, error) {
@@ -102,7 +103,7 @@ func (h Handlers) Auth0GetUser(id string) (Auth0User, error) {
 }
 
 // CreateAuth0User creates user at auth0
-func (h Handlers) CreateAuth0User(user Auth0User, token string) (bool, error) {
+func (h *Handlers) CreateAuth0User(user Auth0User, token string) (bool, error) {
 	auth0URI := viper.GetString("auth0URI")
 
 	body, _ := json.Marshal(user)
@@ -125,7 +126,7 @@ func (h Handlers) CreateAuth0User(user Auth0User, token string) (bool, error) {
 }
 
 // UpdateAuth0User updates user at auth0
-func (h Handlers) UpdateAuth0User(user Auth0User, userID string) error {
+func (h *Handlers) UpdateAuth0User(user Auth0User, userID string) error {
 	auth0URI := viper.GetString("auth0URI")
 	apikey, err := getToken()
 
