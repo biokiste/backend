@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/didi/gendry/scanner"
 	"github.com/spf13/viper"
@@ -38,6 +39,11 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	db.SetMaxOpenConns(25)
+	db.SetMaxIdleConns(25)
+	db.SetConnMaxLifetime(5 * time.Minute)
+
 	defer db.Close()
 
 	// set tag name for sql scanner
