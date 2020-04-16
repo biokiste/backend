@@ -1,10 +1,12 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/gorilla/mux"
 )
@@ -213,7 +215,10 @@ func (h *Handlers) addTransaction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	result, err := h.DB.Exec(
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	result, err := h.DB.ExecContext(ctx,
 		`INSERT INTO Transactions (Amount, Type, State, UserID, CreatedBy)
 		 VALUES (?,?,?,?,?)`,
 		b.Amount,
@@ -230,7 +235,12 @@ func (h *Handlers) addTransaction(w http.ResponseWriter, r *http.Request) {
 	}
 
 	query := fmt.Sprintf(`UPDATE Users SET LastActivityAt = CURRENT_TIMESTAMP() WHERE ID = %d`, b.UserID)
-	h.DB.Query(query)
+	_, err = h.DB.Exec(query)
+	if err != nil {
+		fmt.Println(err)
+		respondWithHTTP(w, http.StatusInternalServerError)
+		return
+	}
 
 	type resBody struct {
 		Status       string `json:"status"`
