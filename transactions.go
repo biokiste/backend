@@ -197,6 +197,7 @@ func (h *Handlers) addTransaction(w http.ResponseWriter, r *http.Request) {
 		State         string  `json:"state"`
 		UserID        int     `json:"userId"`
 		CreatedBy     int     `json:"createdBy"`
+		CreatedAt     string  `json:"createdAt"`
 		UpdateComment string  `json:"updateComment"`
 	}
 
@@ -208,7 +209,7 @@ func (h *Handlers) addTransaction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if b.Amount == 0 && b.UpdateComment == "" || b.Type == "" || b.State == "" || b.UserID == 0 || b.CreatedBy == 0 {
+	if b.Amount == 0 && b.UpdateComment == "" || b.Type == "" || b.State == "" || b.UserID == 0 || b.CreatedBy == 0 || b.CreatedAt == "" {
 		err := SimpleResponseBody{"Some required fields are missing!"}
 		fmt.Println(err.Text)
 		respondWithJSON(w, JSONResponse{http.StatusBadRequest, &err})
@@ -219,13 +220,14 @@ func (h *Handlers) addTransaction(w http.ResponseWriter, r *http.Request) {
 	defer cancel()
 
 	result, err := h.DB.ExecContext(ctx,
-		`INSERT INTO Transactions (Amount, Type, State, UserID, CreatedBy)
-		 VALUES (?,?,?,?,?)`,
+		`INSERT INTO Transactions (Amount, Type, State, UserID, CreatedBy, CreatedAt)
+		 VALUES (?,?,?,?,?,?)`,
 		b.Amount,
 		b.Type,
 		b.State,
 		b.UserID,
 		b.CreatedBy,
+		b.CreatedAt,
 	)
 
 	if err != nil {
