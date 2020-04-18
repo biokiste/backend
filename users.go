@@ -127,7 +127,7 @@ func (h *Handlers) addUser(w http.ResponseWriter, r *http.Request) {
 
 	if b.LeavingDate != "" {
 		fmt.Fprint(&insert, ", LeavingDate")
-		fmt.Fprintf(&values, ", %s", b.LeavingDate)
+		fmt.Fprintf(&values, ", %q", b.LeavingDate)
 	}
 
 	if b.AdditionalInfos != "" {
