@@ -46,7 +46,7 @@ CREATE TABLE `Loans` (
   `CreatedBy` int(11) NOT NULL,
   `UpdatedAt` datetime DEFAULT NULL,
   `UpdatedBy` int(11) DEFAULT NULL,
-  `UpdateComment` varchar(255) DEFAULT NULL
+  `Comment` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 ALTER TABLE `Loans`
