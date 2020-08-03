@@ -68,7 +68,7 @@ func (h Handlers) getSettings(w http.ResponseWriter, r *http.Request) {
 	`)
 	if err != nil {
 		fmt.Println(err)
-		printInternalError(w)
+		respondWithHTTP(w, http.StatusInternalServerError)
 		return
 	}
 	defer results.Close()
@@ -90,7 +90,7 @@ func (h Handlers) getSettings(w http.ResponseWriter, r *http.Request) {
 		)
 		if err != nil {
 			fmt.Println(err)
-			printInternalError(w)
+			respondWithHTTP(w, http.StatusInternalServerError)
 			return
 		}
 		settings = append(settings, s)
@@ -100,26 +100,19 @@ func (h Handlers) getSettings(w http.ResponseWriter, r *http.Request) {
 		settings = make([]setting, 0)
 	}
 
-	printJSON(w, &settings)
+	respondWithJSON(w, JSONResponse{Body: &settings})
 }
 
 func (h Handlers) getSettingByKey(w http.ResponseWriter, r *http.Request) {
 	key, _ := mux.Vars(r)["key"]
 
+	query := fmt.Sprintf(`SELECT ID, SettingKey, Value, Description, CreatedAt, CreatedBy, COALESCE(UpdatedAt, '') AS UpdatedAt, COALESCE(UpdatedBy, 0) AS UpdatedBy, COALESCE(UpdateComment, '') AS UpdateComment FROM Settings WHERE SettingKey = "%s"`, key)
+
+	row := h.DB.QueryRow(query)
+
 	var s setting
-	if err := h.DB.QueryRow(`
-		SELECT 
-			ID,
-			SettingKey,
-			Value,
-			Description,
-			CreatedAt,
-			CreatedBy,
-			COALESCE(UpdatedAt, '') AS UpdatedAt,
-			COALESCE(UpdatedBy, 0) AS UpdatedBy,
-			COALESCE(UpdateComment, '') AS UpdateComment
-		FROM Settings
-		WHERE SettingKey = ?`, key).Scan(
+
+	row.Scan(
 		&s.ID,
 		&s.Key,
 		&s.Value,
@@ -129,12 +122,14 @@ func (h Handlers) getSettingByKey(w http.ResponseWriter, r *http.Request) {
 		&s.UpdatedAt,
 		&s.UpdatedBy,
 		&s.UpdateComment,
-	); err != nil {
-		fmt.Println(err)
-		printInternalError(w)
+	)
+
+	if s.ID == 0 {
+		respondWithHTTP(w, http.StatusNotFound)
 		return
 	}
-	printJSON(w, &s)
+
+	respondWithJSON(w, JSONResponse{Body: &s})
 }
 
 func (h Handlers) updateSettingByKey(w http.ResponseWriter, r *http.Request) {
@@ -151,15 +146,14 @@ func (h Handlers) updateSettingByKey(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&b)
 	if err != nil {
 		fmt.Println(err)
-		printInternalError(w)
+		respondWithHTTP(w, http.StatusInternalServerError)
 		return
 	}
 
 	if b.UpdatedBy == 0 || b.UpdateComment == "" {
-		code := 400
-		msg := "Some required fields are missing!"
-		fmt.Println(msg)
-		printCustomError(w, ErrorMessage{code, msg}, code)
+		err := SimpleResponseBody{"Some required fields are missing!"}
+		fmt.Println(err.Text)
+		respondWithJSON(w, JSONResponse{http.StatusBadRequest, &err})
 		return
 	}
 
@@ -180,18 +174,13 @@ func (h Handlers) updateSettingByKey(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		fmt.Println(err)
-		printInternalError(w)
+		respondWithHTTP(w, http.StatusInternalServerError)
 		return
 	}
 
 	rowsAffected, _ := result.RowsAffected()
 
-	type resBody struct {
-		Status       string `json:"status"`
-		RowsAffected int    `json:"rowsAffected"`
-	}
-
-	printJSON(w, &resBody{"ok", int(rowsAffected)})
+	respondWithJSON(w, JSONResponse{Body: UpdateResponseBody{int(rowsAffected)}})
 }
 
 func (h Handlers) addSetting(w http.ResponseWriter, r *http.Request) {
@@ -206,15 +195,14 @@ func (h Handlers) addSetting(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&b)
 	if err != nil {
 		fmt.Println(err)
-		printInternalError(w)
+		respondWithHTTP(w, http.StatusInternalServerError)
 		return
 	}
 
 	if b.Key == "" || b.Value == "" || b.Description == "" || b.CreatedBy == 0 {
-		code := 400
-		msg := "Some required fields are missing!"
-		fmt.Println(msg)
-		printCustomError(w, ErrorMessage{code, msg}, code)
+		err := SimpleResponseBody{"Some required fields are missing!"}
+		fmt.Println(err.Text)
+		respondWithJSON(w, JSONResponse{http.StatusBadRequest, &err})
 		return
 	}
 
@@ -229,22 +217,17 @@ func (h Handlers) addSetting(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		fmt.Println(err)
-		printInternalError(w)
+		respondWithHTTP(w, http.StatusInternalServerError)
 		return
-	}
-
-	type resBody struct {
-		Status       string `json:"status"`
-		LastInsertId int    `json:"id"`
 	}
 
 	id, err := result.LastInsertId()
 
 	if err != nil {
 		fmt.Println(err)
-		printInternalError(w)
+		respondWithHTTP(w, http.StatusInternalServerError)
 		return
 	}
 
-	printJSON(w, &resBody{"ok", int(id)})
+	respondWithJSON(w, JSONResponse{Body: InsertResponseBody{int(id)}})
 }

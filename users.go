@@ -108,15 +108,14 @@ func (h *Handlers) addUser(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&b)
 	if err != nil {
 		fmt.Println(err)
-		printInternalError(w)
+		respondWithHTTP(w, http.StatusInternalServerError)
 		return
 	}
 
 	if b.State == "" || b.FirstName == "" || b.LastName == "" || b.Birthday == "" || b.Password == "" || b.Email == "" || b.Phone == "" || b.Street == "" || b.StreetNumber == "" || b.Zip == "" || b.Country == "" || b.EntranceDate == "" || b.CreatedBy == 0 {
-		code := 400
-		msg := "Some required fields are missing!"
-		fmt.Println(msg)
-		printCustomError(w, ErrorMessage{code, msg}, code)
+		err := SimpleResponseBody{"Some required fields are missing!"}
+		fmt.Println(err.Text)
+		respondWithJSON(w, JSONResponse{http.StatusBadRequest, &err})
 		return
 	}
 
@@ -128,7 +127,7 @@ func (h *Handlers) addUser(w http.ResponseWriter, r *http.Request) {
 
 	if b.LeavingDate != "" {
 		fmt.Fprint(&insert, ", LeavingDate")
-		fmt.Fprintf(&values, ", %s", b.LeavingDate)
+		fmt.Fprintf(&values, ", %q", b.LeavingDate)
 	}
 
 	if b.AdditionalInfos != "" {
@@ -144,26 +143,25 @@ func (h *Handlers) addUser(w http.ResponseWriter, r *http.Request) {
 	result, err := h.DB.Exec(query)
 	if err != nil {
 		fmt.Println(err)
-		printError(w, err)
+		respondWithHTTP(w, http.StatusInternalServerError)
 		return
 	}
 	id, _ := result.LastInsertId()
 
 	auth0User := Auth0User{
-		UserID:     strconv.Itoa(int(id)),
-		Password:   b.Password,
-		Email:      b.Email,
-		Connection: "Username-Password-Authentication",
+		UserID:      strconv.Itoa(int(id)),
+		Password:    b.Password,
+		Email:       b.Email,
+		Connection:  "Username-Password-Authentication",
+		VerifyEmail: false,
 	}
 
 	token, err := getToken()
 
 	if err != nil {
 		deleteUser(h.DB, id)
-		message := fmt.Sprintf(`Creating user at auth provider failed with "%s"`, err)
-		code := 500
-		fmt.Println(err)
-		printCustomError(w, ErrorMessage{code, message}, code)
+		text := fmt.Sprintf(`Creating user at auth provider failed with "%s"`, err)
+		respondWithJSON(w, JSONResponse{http.StatusInternalServerError, SimpleResponseBody{text}})
 		return
 	}
 
@@ -171,19 +169,12 @@ func (h *Handlers) addUser(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		deleteUser(h.DB, id)
-		message := fmt.Sprintf(`Creating user at auth provider failed with "%s"`, err)
-		code := 500
-		fmt.Println(message)
-		printCustomError(w, ErrorMessage{code, message}, code)
+		text := fmt.Sprintf(`Creating user at auth provider failed with "%s"`, err)
+		respondWithJSON(w, JSONResponse{http.StatusInternalServerError, SimpleResponseBody{text}})
 		return
 	}
 
-	type resBody struct {
-		Status       string `json:"status"`
-		LastInsertId int    `json:"id"`
-	}
-
-	printJSON(w, &resBody{"ok", int(id)})
+	respondWithJSON(w, JSONResponse{Body: InsertResponseBody{int(id)}})
 }
 
 func (h *Handlers) getUsers(w http.ResponseWriter, r *http.Request) {
@@ -225,7 +216,7 @@ func (h *Handlers) getUsers(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		fmt.Println(err)
-		printInternalError(w)
+		respondWithHTTP(w, http.StatusInternalServerError)
 		return
 	}
 
@@ -257,7 +248,7 @@ func (h *Handlers) getUsers(w http.ResponseWriter, r *http.Request) {
 		)
 		if err != nil {
 			fmt.Println(err)
-			printInternalError(w)
+			respondWithHTTP(w, http.StatusInternalServerError)
 			return
 		}
 		users = append(users, u)
@@ -267,8 +258,7 @@ func (h *Handlers) getUsers(w http.ResponseWriter, r *http.Request) {
 		users = make([]user, 0)
 	}
 
-	printJSON(w, &users)
-
+	respondWithJSON(w, JSONResponse{Body: &users})
 }
 
 func (h *Handlers) getUserByID(w http.ResponseWriter, r *http.Request) {
@@ -327,12 +317,10 @@ func (h *Handlers) getUserByID(w http.ResponseWriter, r *http.Request) {
 	)
 
 	if u.ID == 0 {
-		code := 404
-		msg := "not found"
-		printCustomError(w, ErrorMessage{code, msg}, code)
+		respondWithHTTP(w, http.StatusNotFound)
 		return
 	}
-	printJSON(w, u)
+	respondWithJSON(w, JSONResponse{Body: u})
 }
 
 func (h *Handlers) updateUserByID(w http.ResponseWriter, r *http.Request) {
@@ -361,15 +349,14 @@ func (h *Handlers) updateUserByID(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&b)
 	if err != nil {
 		fmt.Println(err)
-		printInternalError(w)
+		respondWithHTTP(w, http.StatusInternalServerError)
 		return
 	}
 
 	if b.UpdatedBy == 0 || b.UpdateComment == "" {
-		code := 400
-		msg := "Some required fields are missing!"
-		fmt.Println(msg)
-		printCustomError(w, ErrorMessage{code, msg}, code)
+		err := SimpleResponseBody{"Some required fields are missing!"}
+		fmt.Println(err.Text)
+		respondWithJSON(w, JSONResponse{http.StatusBadRequest, &err})
 		return
 	}
 
@@ -385,7 +372,7 @@ func (h *Handlers) updateUserByID(w http.ResponseWriter, r *http.Request) {
 		err = h.UpdateAuth0User(u, "auth|"+id)
 		if err != nil {
 			fmt.Println(err)
-			printInternalError(w)
+			respondWithHTTP(w, http.StatusInternalServerError)
 			return
 		}
 	}
@@ -438,18 +425,13 @@ func (h *Handlers) updateUserByID(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		fmt.Println(err)
-		printInternalError(w)
+		respondWithHTTP(w, http.StatusInternalServerError)
 		return
 	}
 
 	rowsAffected, _ := result.RowsAffected()
 
-	type resBody struct {
-		Status       string `json:"status"`
-		RowsAffected int    `json:"rowsAffected"`
-	}
-
-	printJSON(w, &resBody{"ok", int(rowsAffected)})
+	respondWithJSON(w, JSONResponse{Body: UpdateResponseBody{int(rowsAffected)}})
 }
 
 func (h *Handlers) addUserToGroup(w http.ResponseWriter, r *http.Request) {
@@ -464,15 +446,14 @@ func (h *Handlers) addUserToGroup(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&b)
 	if err != nil {
 		fmt.Println(err)
-		printInternalError(w)
+		respondWithHTTP(w, http.StatusInternalServerError)
 		return
 	}
 
 	if b.GroupID == 0 {
-		code := 400
-		msg := "Some required fields are missing!"
-		fmt.Println(msg)
-		printCustomError(w, ErrorMessage{code, msg}, code)
+		err := SimpleResponseBody{"Some required fields are missing!"}
+		fmt.Println(err.Text)
+		respondWithJSON(w, JSONResponse{http.StatusBadRequest, &err})
 		return
 	}
 
@@ -491,24 +472,19 @@ func (h *Handlers) addUserToGroup(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		fmt.Println(err)
-		printInternalError(w)
+		respondWithHTTP(w, http.StatusInternalServerError)
 		return
-	}
-
-	type resBody struct {
-		Status       string `json:"status"`
-		LastInsertId int    `json:"id"`
 	}
 
 	id, err := result.LastInsertId()
 
 	if err != nil {
 		fmt.Println(err)
-		printInternalError(w)
+		respondWithHTTP(w, http.StatusInternalServerError)
 		return
 	}
 
-	printJSON(w, &resBody{"ok", int(id)})
+	respondWithJSON(w, JSONResponse{Body: InsertResponseBody{int(id)}})
 }
 
 func (h *Handlers) updateGroupUser(w http.ResponseWriter, r *http.Request) {
@@ -523,7 +499,7 @@ func (h *Handlers) updateGroupUser(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&b)
 	if err != nil {
 		fmt.Println(err)
-		printInternalError(w)
+		respondWithHTTP(w, http.StatusInternalServerError)
 		return
 	}
 
@@ -538,18 +514,13 @@ func (h *Handlers) updateGroupUser(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		fmt.Println(err)
-		printInternalError(w)
+		respondWithHTTP(w, http.StatusInternalServerError)
 		return
 	}
 
 	rowsAffected, _ := result.RowsAffected()
 
-	type resBody struct {
-		Status       string `json:"status"`
-		RowsAffected int    `json:"rowsAffected"`
-	}
-
-	printJSON(w, &resBody{"ok", int(rowsAffected)})
+	respondWithJSON(w, JSONResponse{Body: UpdateResponseBody{int(rowsAffected)}})
 }
 
 func (h *Handlers) removeUserFromGroup(w http.ResponseWriter, r *http.Request) {
@@ -562,19 +533,13 @@ func (h *Handlers) removeUserFromGroup(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		fmt.Println(err)
-		printInternalError(w)
+		respondWithHTTP(w, http.StatusInternalServerError)
 		return
 	}
 
 	rowsAffected, _ := result.RowsAffected()
 
-	type resBody struct {
-		Status       string `json:"status"`
-		RowsAffected int    `json:"rowsAffected"`
-	}
-
-	printJSON(w, &resBody{"ok", int(rowsAffected)})
-
+	respondWithJSON(w, JSONResponse{Body: UpdateResponseBody{int(rowsAffected)}})
 }
 
 func deleteUser(db *sql.DB, id int64) (bool, error) {
