@@ -30,8 +30,9 @@ func (h *Handlers) addAsset(w http.ResponseWriter, r *http.Request) {
 
 	// expects client formData key asset: formData.append("asset", file)
 	file, fileheader, err := r.FormFile("asset")
-	fmt.Println(file, err)
+
 	if err != nil {
+		respondWithHTTP(w, http.StatusBadRequest)
 		fmt.Fprintln(w, err)
 		return
 	}
@@ -42,6 +43,7 @@ func (h *Handlers) addAsset(w http.ResponseWriter, r *http.Request) {
 
 	out, err := os.Create(fp)
 	if err != nil {
+		respondWithHTTP(w, http.StatusBadRequest)
 		fmt.Fprintf(w, "Unable to create the file for writing.")
 		return
 	}
@@ -50,7 +52,9 @@ func (h *Handlers) addAsset(w http.ResponseWriter, r *http.Request) {
 	// write the content from POST to the file
 	_, err = io.Copy(out, file)
 	if err != nil {
+		respondWithHTTP(w, http.StatusBadRequest)
 		fmt.Fprintln(w, err)
 	}
+	respondWithHTTP(w, http.StatusOK)
 
 }
