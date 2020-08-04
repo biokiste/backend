@@ -42,8 +42,8 @@ func GetSettingsRoutes(h *Handlers) []Route {
 
 type setting struct {
 	ID            int    `json:"id"`
-	Key           string `json:"key"`
-	Value         string `json:"value"`
+	ItemKey       string `json:"key"`
+	ItemValue     string `json:"value"`
 	Description   string `json:"description"`
 	CreatedAt     string `json:"createdAt"`
 	CreatedBy     int    `json:"createdBy"`
@@ -56,8 +56,8 @@ func (h Handlers) getSettings(w http.ResponseWriter, r *http.Request) {
 	results, err := h.DB.Query(`
 		SELECT 
 			ID,
-			SettingKey,
-			Value,
+			ItemKey,
+			ItemValue,
 			Description
 			CreatedAt,
 			CreatedBy,
@@ -79,8 +79,8 @@ func (h Handlers) getSettings(w http.ResponseWriter, r *http.Request) {
 		var s setting
 		err = results.Scan(
 			&s.ID,
-			&s.Key,
-			&s.Value,
+			&s.ItemKey,
+			&s.ItemValue,
 			&s.Description,
 			&s.CreatedAt,
 			&s.CreatedBy,
@@ -106,7 +106,7 @@ func (h Handlers) getSettings(w http.ResponseWriter, r *http.Request) {
 func (h Handlers) getSettingByKey(w http.ResponseWriter, r *http.Request) {
 	key, _ := mux.Vars(r)["key"]
 
-	query := fmt.Sprintf(`SELECT ID, SettingKey, Value, Description, CreatedAt, CreatedBy, COALESCE(UpdatedAt, '') AS UpdatedAt, COALESCE(UpdatedBy, 0) AS UpdatedBy, COALESCE(UpdateComment, '') AS UpdateComment FROM Settings WHERE SettingKey = "%s"`, key)
+	query := fmt.Sprintf(`SELECT ID, ItemKey, ItemValue FROM Settings WHERE ItemKey = "%s"`, key)
 
 	row := h.DB.QueryRow(query)
 
@@ -114,16 +114,11 @@ func (h Handlers) getSettingByKey(w http.ResponseWriter, r *http.Request) {
 
 	row.Scan(
 		&s.ID,
-		&s.Key,
-		&s.Value,
-		&s.Description,
-		&s.CreatedAt,
-		&s.CreatedBy,
-		&s.UpdatedAt,
-		&s.UpdatedBy,
-		&s.UpdateComment,
+		&s.ItemKey,
+		&s.ItemValue,
 	)
 
+	fmt.Println(s, &s)
 	if s.ID == 0 {
 		respondWithHTTP(w, http.StatusNotFound)
 		return
@@ -166,7 +161,7 @@ func (h Handlers) updateSettingByKey(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(&str, "Description = '%s', ", b.Description)
 	}
 
-	fmt.Fprintf(&str, `UpdatedAt = CURRENT_TIMESTAMP(), UpdatedBy = %d, UpdateComment = "%s" WHERE SettingKey = "%s"`, b.UpdatedBy, b.UpdateComment, key)
+	fmt.Fprintf(&str, `UpdatedAt = CURRENT_TIMESTAMP(), UpdatedBy = %d, UpdateComment = "%s" WHERE ItemKey = "%s"`, b.UpdatedBy, b.UpdateComment, key)
 
 	query := str.String()
 
@@ -207,7 +202,7 @@ func (h Handlers) addSetting(w http.ResponseWriter, r *http.Request) {
 	}
 
 	result, err := h.DB.Exec(
-		`INSERT INTO Settings (SettingKey, Value, Description, CreatedBy)
+		`INSERT INTO Settings (ItemKey, Value, Description, CreatedBy)
 		 VALUES (?,?,?,?)`,
 		b.Key,
 		b.Value,
