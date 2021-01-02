@@ -38,6 +38,10 @@ func APIRouter(config *RouterConfig) *mux.Router {
 		routes = append(routes, r)
 	}
 
+	for _, r := range GetAssetsRoutes(config.Handlers) {
+		routes = append(routes, r)
+	}
+
 	for _, r := range GetRoutes(config.Handlers) {
 		routes = append(routes, r)
 	}
