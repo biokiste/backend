@@ -48,6 +48,8 @@ type transaction struct {
 	UpdatedAt     string  `json:"updatedAt,omitempty"`
 	UpdatedBy     int     `json:"updatedBy,omitempty"`
 	UpdateComment string  `json:"updateComment,omitempty"`
+	FirstName     string  `json:"firstName"`
+	LastName      string  `json:"lastName"`
 }
 
 func (h *Handlers) getTransactions(w http.ResponseWriter, r *http.Request) {
@@ -58,35 +60,43 @@ func (h *Handlers) getTransactions(w http.ResponseWriter, r *http.Request) {
 	c := params.Get("created_at")
 
 	var str strings.Builder
-	fmt.Fprint(&str, `SELECT ID, Amount, Type, State, UserID, CreatedAt, CreatedBy, COALESCE(UpdatedAt, '') AS UpdatedAt, COALESCE(UpdatedBy, 0) AS UpdatedBy, COALESCE(UpdateComment, '') AS UpdateComment FROM Transactions`)
+	fmt.Fprint(&str, `SELECT 
+	Transactions.ID, Transactions.Amount, Transactions.Type,
+	Transactions.State, Transactions.UserID, Transactions.CreatedAt,
+	Transactions.CreatedBy, 
+	COALESCE(Transactions.UpdatedAt, '') AS UpdatedAt,
+	COALESCE(Transactions.UpdatedBy, 0) AS UpdatedBy, 
+	COALESCE(Transactions.UpdateComment, '') AS UpdateComment, 
+	Users.FirstName, Users.LastName FROM Transactions
+	INNER JOIN Users ON Transactions.UserID=Users.ID`)
 
 	if t != "" || s != "" || u != "" || c != "" {
 		fmt.Fprint(&str, " WHERE ")
 	}
 
 	if t != "" {
-		fmt.Fprintf(&str, `Type = "%s"`, t)
+		fmt.Fprintf(&str, `Transactions.Type = "%s"`, t)
 		if s != "" || u != "" || c != "" {
 			fmt.Fprint(&str, " AND ")
 		}
 	}
 
 	if s != "" {
-		fmt.Fprintf(&str, `State = "%s"`, s)
+		fmt.Fprintf(&str, `Transactions.State = "%s"`, s)
 		if u != "" || c != "" {
 			fmt.Fprint(&str, " AND ")
 		}
 	}
 
 	if u != "" {
-		fmt.Fprintf(&str, `UserID = %s`, u)
+		fmt.Fprintf(&str, `Transactions.UserID = %s`, u)
 		if c != "" {
 			fmt.Fprint(&str, " AND ")
 		}
 	}
 
 	if c != "" {
-		fmt.Fprintf(&str, `CreatedAt >= "%s" AND CreatedAt < DATE_ADD("%s", INTERVAL 1 DAY)`, c, c)
+		fmt.Fprintf(&str, `Transactions.CreatedAt >= "%s" AND Transactions.CreatedAt < DATE_ADD("%s", INTERVAL 1 DAY)`, c, c)
 	}
 
 	query := str.String()
@@ -114,6 +124,8 @@ func (h *Handlers) getTransactions(w http.ResponseWriter, r *http.Request) {
 			&t.UpdatedAt,
 			&t.UpdatedBy,
 			&t.UpdateComment,
+			&t.FirstName,
+			&t.LastName,
 		)
 		if err != nil {
 			fmt.Println(err)
