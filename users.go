@@ -13,26 +13,27 @@ import (
 )
 
 type user struct {
-	ID              int    `json:"id"`
-	State           string `json:"state"`
-	FirstName       string `json:"firstName"`
-	LastName        string `json:"lastName"`
-	Email           string `json:"email"`
-	Phone           string `json:"phone"`
-	Street          string `json:"street"`
-	StreetNumber    string `json:"streetNumber"`
-	Zip             string `json:"zip"`
-	Country         string `json:"country"`
-	Birthday        string `json:"birthday"`
-	EntranceDate    string `json:"entranceDate"`
-	LeavingDate     string `json:"leavingDate,omitempty"`
-	AdditionalInfos string `json:"additionalInfos,omitempty"`
-	LastActivityAt  string `json:"lastActivityAt,omitempty"`
-	CreatedAt       string `json:"createdAt"`
-	CreatedBy       int    `json:"createdBy"`
-	UpdatedAt       string `json:"updatedAt,omitempty"`
-	UpdatedBy       int    `json:"updatedBy,omitempty"`
-	UpdateComment   string `json:"updateComment,omitempty"`
+	ID              int     `json:"id"`
+	State           string  `json:"state,omitempty"`
+	FirstName       string  `json:"firstName,omitempty"`
+	LastName        string  `json:"lastName,omitempty"`
+	Email           string  `json:"email,omitempty"`
+	Phone           string  `json:"phone,omitempty"`
+	Street          string  `json:"street,omitempty"`
+	StreetNumber    string  `json:"streetNumber,omitempty"`
+	Zip             string  `json:"zip,omitempty"`
+	Country         string  `json:"country,omitempty"`
+	Birthday        string  `json:"birthday,omitempty"`
+	EntranceDate    string  `json:"entranceDate,omitempty"`
+	LeavingDate     string  `json:"leavingDate,omitempty"`
+	AdditionalInfos string  `json:"additionalInfos,omitempty"`
+	LastActivityAt  string  `json:"lastActivityAt,omitempty"`
+	CreatedAt       string  `json:"createdAt,omitempty"`
+	CreatedBy       int     `json:"createdBy,omitempty"`
+	UpdatedAt       string  `json:"updatedAt,omitempty"`
+	UpdatedBy       int     `json:"updatedBy,omitempty"`
+	UpdateComment   string  `json:"updateComment,omitempty"`
+	Balance         float32 `json:"balance,omitempty"`
 }
 
 // GetUsersRoutes get all routes of path /users
@@ -267,28 +268,30 @@ func (h *Handlers) getUserByID(w http.ResponseWriter, r *http.Request) {
 
 	query := fmt.Sprintf(`
 		SELECT
-			ID,
-			State,
-			FirstName,
-			LastName,
-			Email,
-			Phone,
-			Street,
-			StreetNumber,
-			Zip,
-			Country,
-			Birthday,
-			EntranceDate,
-			COALESCE(LeavingDate, '') as LeavingDate,
-			COALESCE(AdditionalInfos, '') as AdditionalInfos,
-			COALESCE(LastActivityAt, '') as LastActivityAt,
-			CreatedAt,
-			CreatedBy,
-			COALESCE(UpdatedAt, '') as UpdatedAt,
-			COALESCE(UpdatedBy, 0) as UpdatedBy,
-			COALESCE(UpdateComment, '') as UpdateComment
+			Users.ID,
+			Users.State,
+			Users.FirstName,
+			Users.LastName,
+			Users.Email,
+			Users.Phone,
+			Users.Street,
+			Users.StreetNumber,
+			Users.Zip,
+			Users.Country,
+			Users.Birthday,
+			Users.EntranceDate,
+			COALESCE(Users.LeavingDate, '') as LeavingDate,
+			COALESCE(Users.AdditionalInfos, '') as AdditionalInfos,
+			COALESCE(Users.LastActivityAt, '') as LastActivityAt,
+			Users.CreatedAt,
+			Users.CreatedBy,
+			COALESCE(Users.UpdatedAt, '') as UpdatedAt,
+			COALESCE(Users.UpdatedBy, 0) as UpdatedBy,
+			COALESCE(Users.UpdateComment, '') as UpdateComment,
+			CAST(SUM(Transactions.Amount) AS DECIMAL(5,2)) AS Balance
 		FROM Users
-		WHERE ID = %s`, id,
+		INNER JOIN Transactions ON Users.ID=Transactions.UserID
+		WHERE Users.ID = %s`, id,
 	)
 
 	row := h.DB.QueryRow(query)
@@ -314,6 +317,7 @@ func (h *Handlers) getUserByID(w http.ResponseWriter, r *http.Request) {
 		&u.UpdatedAt,
 		&u.UpdatedBy,
 		&u.UpdateComment,
+		&u.Balance,
 	)
 
 	if u.ID == 0 {
