@@ -203,7 +203,7 @@ func (h *Handlers) updateTransactionByID(w http.ResponseWriter, r *http.Request)
 }
 
 func (h *Handlers) addTransaction(w http.ResponseWriter, r *http.Request) {
-	type body struct {
+	type transaction struct {
 		Amount        float32 `json:"amount"`
 		Type          string  `json:"type"`
 		State         string  `json:"state"`
@@ -213,61 +213,72 @@ func (h *Handlers) addTransaction(w http.ResponseWriter, r *http.Request) {
 		UpdateComment string  `json:"updateComment"`
 	}
 
-	var b body
-	err := json.NewDecoder(r.Body).Decode(&b)
+	type body []transaction
+
+	var jsonBody body
+	err := json.NewDecoder(r.Body).Decode(&jsonBody)
 	if err != nil {
 		fmt.Println(err)
 		respondWithHTTP(w, http.StatusInternalServerError)
 		return
 	}
 
-	if b.Amount == 0 && b.UpdateComment == "" || b.Type == "" || b.State == "" || b.UserID == 0 || b.CreatedBy == 0 || b.CreatedAt == "" {
-		err := SimpleResponseBody{"Some required fields are missing!"}
-		fmt.Println(err.Text)
-		respondWithJSON(w, JSONResponse{http.StatusBadRequest, &err})
-		return
+	fmt.Println(jsonBody)
+
+	var transactionIds []int64
+
+	for _, b := range jsonBody {
+		if b.Amount == 0 && b.UpdateComment == "" || b.Type == "" || b.State == "" || b.UserID == 0 || b.CreatedBy == 0 || b.CreatedAt == "" {
+			err := SimpleResponseBody{"Some required fields are missing!"}
+			fmt.Println(err.Text)
+			respondWithJSON(w, JSONResponse{http.StatusBadRequest, &err})
+			return
+		}
+
+		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+		defer cancel()
+
+		result, err := h.DB.ExecContext(ctx,
+			`INSERT INTO Transactions (Amount, Type, State, UserID, CreatedBy, CreatedAt)
+			 VALUES (?,?,?,?,?,?)`,
+			b.Amount,
+			b.Type,
+			b.State,
+			b.UserID,
+			b.CreatedBy,
+			b.CreatedAt,
+		)
+
+		if err != nil {
+			fmt.Println(err)
+			respondWithHTTP(w, http.StatusInternalServerError)
+			return
+		}
+
+		query := fmt.Sprintf(`UPDATE Users SET LastActivityAt = CURRENT_TIMESTAMP() WHERE ID = %d`, b.UserID)
+		_, err = h.DB.Exec(query)
+		if err != nil {
+			fmt.Println(err)
+			respondWithHTTP(w, http.StatusInternalServerError)
+			return
+		}
+
+		type resBody struct {
+			Status       string `json:"status"`
+			LastInsertId int    `json:"id"`
+		}
+
+		id, err := result.LastInsertId()
+
+		if err != nil {
+			fmt.Println(err)
+			respondWithHTTP(w, http.StatusInternalServerError)
+			return
+		}
+		transactionIds = append(transactionIds, id)
+
 	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-	defer cancel()
-
-	result, err := h.DB.ExecContext(ctx,
-		`INSERT INTO Transactions (Amount, Type, State, UserID, CreatedBy, CreatedAt)
-		 VALUES (?,?,?,?,?,?)`,
-		b.Amount,
-		b.Type,
-		b.State,
-		b.UserID,
-		b.CreatedBy,
-		b.CreatedAt,
-	)
-
-	if err != nil {
-		fmt.Println(err)
-		respondWithHTTP(w, http.StatusInternalServerError)
-		return
-	}
-
-	query := fmt.Sprintf(`UPDATE Users SET LastActivityAt = CURRENT_TIMESTAMP() WHERE ID = %d`, b.UserID)
-	_, err = h.DB.Exec(query)
-	if err != nil {
-		fmt.Println(err)
-		respondWithHTTP(w, http.StatusInternalServerError)
-		return
-	}
-
-	type resBody struct {
-		Status       string `json:"status"`
-		LastInsertId int    `json:"id"`
-	}
-
-	id, err := result.LastInsertId()
-
-	if err != nil {
-		fmt.Println(err)
-		respondWithHTTP(w, http.StatusInternalServerError)
-		return
-	}
-
-	respondWithJSON(w, JSONResponse{Body: InsertResponseBody{int(id)}})
+	// TODO
+	// Maybe return last ten transactions instead of ids
+	respondWithJSON(w, JSONResponse{Body: InsertResponseArrayBody{transactionIds}})
 }

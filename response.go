@@ -20,6 +20,11 @@ type InsertResponseBody struct {
 	ID int `json:"id"`
 }
 
+// InsertResponseArrayBody Body for array inserts
+type InsertResponseArrayBody struct {
+	IDs []int64 `json:"ids"`
+}
+
 // JSONResponse Response container
 type JSONResponse struct {
 	StatusCode int
