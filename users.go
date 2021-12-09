@@ -88,21 +88,23 @@ func GetUsersRoutes(h *Handlers) []Route {
 
 func (h *Handlers) addUser(w http.ResponseWriter, r *http.Request) {
 	type body struct {
-		State           string `json:"state"`
-		FirstName       string `json:"firstName"`
-		LastName        string `json:"lastName"`
-		Birthday        string `json:"birthday"`
-		Password        string `json:"password"`
-		Email           string `json:"email"`
-		Phone           string `json:"phone"`
-		Street          string `json:"street"`
-		StreetNumber    string `json:"streetNumber"`
-		Zip             string `json:"zip"`
-		Country         string `json:"country"`
-		EntranceDate    string `json:"entranceDate"`
-		LeavingDate     string `json:"leavingDate,omitempty"`
-		AdditionalInfos string `json:"additionalInfos,omitempty"`
-		CreatedBy       int    `json:"createdBy"`
+		ID              int    `json:"id" db:"id"`
+		CreatedAt       string `json:"created_at" db:"created_at"`
+		UpdatedAt       string `json:"updated_at" db:"updated_at"`
+		State           string `json:"state" db:"state"`
+		Firstname       string `json:"firstname" db:"firstname"`
+		Lastname        string `json:"lastname" db:"lastname"`
+		Email           string `json:"email" db:"email"`
+		Phone           string `json:"phone" db:"phone"`
+		Street          string `json:"street" db:"street"`
+		Zip             string `json:"zip" db:"zip"`
+		Country         string `json:"country" db:"country"`
+		Birthday        string `json:"birthday" db:"birthday"`
+		EntranceDate    string `json:"entrance_date" db:"entrance_date"`
+		LeavingDate     string `json:"leaving_date" db:"leaving_date"`
+		AdditionalInfos string `json:"additional_infos" db:"additional_infos"`
+		LastActivityAt  string `json:"last_activity_at" db:"last_activity_at"`
+		Password        string `json:"password" db:"password"`
 	}
 
 	var b body
@@ -113,7 +115,7 @@ func (h *Handlers) addUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if b.State == "" || b.FirstName == "" || b.LastName == "" || b.Birthday == "" || b.Password == "" || b.Email == "" || b.Phone == "" || b.Street == "" || b.StreetNumber == "" || b.Zip == "" || b.Country == "" || b.EntranceDate == "" || b.CreatedBy == 0 {
+	if b.State == "" || b.Firstname == "" || b.Lastname == "" || b.Password == "" || b.Email == "" || b.Phone == "" || b.Street == "" || b.Zip == "" || b.Country == "" {
 		err := SimpleResponseBody{"Some required fields are missing!"}
 		fmt.Println(err.Text)
 		respondWithJSON(w, JSONResponse{http.StatusBadRequest, &err})
@@ -123,16 +125,16 @@ func (h *Handlers) addUser(w http.ResponseWriter, r *http.Request) {
 	var insert strings.Builder
 	var values strings.Builder
 
-	fmt.Fprint(&insert, "INSERT INTO Users (State, FirstName, LastName, Birthday, Email, Phone, Street, StreetNumber, Zip, Country, EntranceDate, CreatedBy")
-	fmt.Fprintf(&values, `VALUES ("%s", "%s", "%s", "%s", "%s", "%s", "%s", "%s", "%s", "%s", "%s", %d`, b.State, b.FirstName, b.LastName, b.Birthday, b.Email, b.Phone, b.Street, b.StreetNumber, b.Zip, b.Country, b.EntranceDate, b.CreatedBy)
+	fmt.Fprint(&insert, "INSERT INTO users (state, firstname, lastname, birthday, email, phone, street, zip, country, entrance_date, created_at, updated_at")
+	fmt.Fprintf(&values, `VALUES ("%s", "%s", "%s", "%s", "%s", "%s", "%s", "%s", "%s", "%s", "%s", "%s"`, b.State, b.Firstname, b.Lastname, b.Birthday, b.Email, b.Phone, b.Street, b.Zip, b.Country, b.EntranceDate, b.CreatedAt, b.UpdatedAt)
 
 	if b.LeavingDate != "" {
-		fmt.Fprint(&insert, ", LeavingDate")
+		fmt.Fprint(&insert, ", leaving_date")
 		fmt.Fprintf(&values, ", %q", b.LeavingDate)
 	}
 
 	if b.AdditionalInfos != "" {
-		fmt.Fprint(&insert, ", AdditionalInfos")
+		fmt.Fprint(&insert, ", additional_infos")
 		fmt.Fprintf(&values, ", %s", b.AdditionalInfos)
 	}
 
@@ -140,6 +142,8 @@ func (h *Handlers) addUser(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(&values, ")")
 
 	query := fmt.Sprintf("%s %s", insert.String(), values.String())
+
+	fmt.Println(query)
 
 	result, err := h.DB.Exec(query)
 	if err != nil {
@@ -156,6 +160,8 @@ func (h *Handlers) addUser(w http.ResponseWriter, r *http.Request) {
 		Connection:  "Username-Password-Authentication",
 		VerifyEmail: false,
 	}
+
+	fmt.Println("try creating auth0 user: ", auth0User)
 
 	token, err := getToken()
 
@@ -467,7 +473,7 @@ func (h *Handlers) addUserToGroup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	result, err := h.DB.Exec(
-		`INSERT INTO GroupUsers (GroupID, UserID, IsLeader)
+		`INSERT INTO groupusers (group_id, user_id, is_leader)
 		 VALUES (?,?,?)`,
 		b.GroupID,
 		userID,

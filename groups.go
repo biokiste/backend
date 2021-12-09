@@ -191,7 +191,7 @@ func (h *Handlers) getGroups(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		q := fmt.Sprintf("SELECT ID, GroupID, UserID, IsLeader FROM GroupUsers WHERE GroupID = %d", g.ID)
+		q := fmt.Sprintf("SELECT id, group_id, user_id, is_leader FROM GroupUsers WHERE group_id = %d", g.ID)
 		result, err := h.DB.Query(q)
 		if err != nil {
 			fmt.Println(err)
