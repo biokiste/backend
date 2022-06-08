@@ -83,12 +83,14 @@ func (h *Handlers) addGroup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	fmt.Println(b.Key,
+		b.Email)
+
 	result, err := h.DB.Exec(
-		`INSERT INTO Groups (GroupKey, Email, CreatedBy)
-		 VALUES (?,?,?)`,
+		`INSERT INTO group_collection (group_name, email)
+			 VALUES (?,?)`,
 		b.Key,
 		b.Email,
-		b.CreatedBy,
 	)
 
 	if err != nil {

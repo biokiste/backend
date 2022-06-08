@@ -445,6 +445,7 @@ func (h *Handlers) updateUserByID(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handlers) addUserToGroup(w http.ResponseWriter, r *http.Request) {
+
 	type body struct {
 		GroupID  int  `json:"groupId"`
 		IsLeader bool `json:"isLeader,omitempty"`
@@ -481,7 +482,6 @@ func (h *Handlers) addUserToGroup(w http.ResponseWriter, r *http.Request) {
 	)
 
 	if err != nil {
-		fmt.Println(err)
 		respondWithHTTP(w, http.StatusInternalServerError)
 		return
 	}
